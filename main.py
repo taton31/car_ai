@@ -25,7 +25,7 @@ FRICTION_ROT = 0.1
 
 
 ENGINEFORCE = 1600000
-BRAKINGFORCE = ENGINEFORCE * 5
+BRAKINGFORCE = ENGINEFORCE / 10
 C_DRAG = 0.7
 C_RR = 3000
 MASS = 900
@@ -100,6 +100,8 @@ class Car (arcade.Sprite):
 
         if self.up_pressed and not self.down_pressed:
             self.F_traction = self.direct * ENGINEFORCE
+        elif not self.up_pressed and self.down_pressed:
+            self.F_traction = - self.direct * BRAKINGFORCE
         else:
             self.F_traction = 0
 
@@ -134,7 +136,9 @@ class Car (arcade.Sprite):
 
         self.acc = self.F_long / MASS
         self.vel += self.acc * delta_time
+        if self.vel.dot(self.direct)<0 : self.vel = self.vel.dot(self.rotate_Vec(self.direct, 90)) * self.rotate_Vec(self.direct, 90) / self.len_vec(self.direct)
         self.pos += self.vel * delta_time
+
         self.center_x = self.pos[0]
         self.center_y = self.pos[1]
 
@@ -207,6 +211,7 @@ class Welcome(arcade.Window):
         self.car_vision()
         
         if line_intersection(self.Car.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(self.Car.get_adjusted_hit_box(), self.Track.track[1]):
+            pass
             self.death()
 
 
@@ -222,13 +227,13 @@ class Welcome(arcade.Window):
             elif (self.Car.center_x - point_1[0])**2 + (self.Car.center_y - point_1[1])**2 < (self.Car.center_x - point_2[0])**2 + (self.Car.center_y - point_2[1])**2: self.Car.vision_points.append(point_1)
             elif (self.Car.center_x - point_1[0])**2 + (self.Car.center_y - point_1[1])**2 > (self.Car.center_x - point_2[0])**2 + (self.Car.center_y - point_2[1])**2: self.Car.vision_points.append(point_2)
         
-        if not self.Car.vision_points_OLD : self.Car.vision_points_OLD = self.Car.vision_points
+        # if not self.Car.vision_points_OLD : self.Car.vision_points_OLD = self.Car.vision_points
         for i in range(len(self.Car.vision_points)):
             if self.Car.vision_points[i] == False : self.Car.vision_points[i] = self.Car.vision_points_OLD[i]
 
             self.Car.vision_points_distance.append(math.sqrt ((self.Car.center_x - self.Car.vision_points[i][0])**2 + (self.Car.center_y - self.Car.vision_points[i][1])**2))
         
-        self.Car.vision_points_OLD = self.Car.vision_points
+        self.Car.vision_points_OLD = self.Car.vision_points.copy()
 
     def on_key_press(self, symbol, modifiers):
 
