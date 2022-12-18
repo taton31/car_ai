@@ -72,12 +72,13 @@ def check_segment_intersection(segment_1, segment_2):
 
     if ((d1 <= 0 and d2 >= 0) or (d1 >= 0 and d2 <= 0)) and ((d3 <= 0 and d4 >= 0) or (d3 >= 0 and d4 <= 0)):
         return intersection([segment_1.start_point.x, segment_1.start_point.y], [segment_1.end_point.x, segment_1.end_point.y], [segment_2.start_point.x, segment_2.start_point.y], [segment_2.end_point.x, segment_2.end_point.y])
-        return True
     return False
 
 
 def line_intersection(a, b):
-
+    points = []
+    goal_point=[0,0]
+    dist = 2000
     for i in range(0,len(a)-1): 
         for j in range(0,len(b)-1):
             point_a = Point(a[i][0], a[i][1])
@@ -88,15 +89,15 @@ def line_intersection(a, b):
             segment_1 = Segment(point_a, point_b)
             segment_2 = Segment(point_c, point_d)
             if check_segment_intersection(segment_1, segment_2):
-                return check_segment_intersection(segment_1, segment_2)
-    return False
+                points.append(check_segment_intersection(segment_1, segment_2))
+    mid_x = (a[0][0])  
+    mid_y = (a[0][1]) 
+    for i in points:
+        if dist > math.sqrt((mid_x - i[0])**2 + (mid_y - i[1])**2):
+            dist = math.sqrt((mid_x - i[0])**2 + (mid_y - i[1])**2)
+            goal_point = i
+    return False if dist == 2000 else goal_point
 
-# def line_intersection(a, b):
-#     for i in range(0, len(a) - 1): 
-#         for j in range(0, len(b) - 1):
-#             if intersection(a[i], a[i+1], b[j], b[j+1])[0] != 0:
-#                 return intersection(a[i], a[i+1], b[j], b[j+1])[0]
-#     return False
 
 def intersection(x1y1, x2y2, x3y3, x4y4):
         try:

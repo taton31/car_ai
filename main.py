@@ -65,8 +65,14 @@ class Car (arcade.Sprite):
         self.acc = np.array([0., 0.]) 
         self.vel = np.array([0., 0.]) 
         self.pos = np.array([x, y]) 
-        self.F_res_a = np.array([0., 0.]) 
+        self.F_res_a = np.array([0., 0.])
+
+        self.vision_vec =  [self.direct, self.rotate_Vec(self.direct, 45), self.rotate_Vec(self.direct, 90), self.rotate_Vec(self.direct, 135), self.rotate_Vec(self.direct, 180), self.rotate_Vec(self.direct, 225), self.rotate_Vec(self.direct, 270), self.rotate_Vec(self.direct, 315)]
+        # self.vision_vec =  [self.direct]
         
+        self.vision_points = []
+        self.vision_points_distance = []
+        self.vision_points_OLD = []
 
     def rotate_Vec(self, vec, angle):
         angle = math.pi * angle / 180
@@ -131,8 +137,16 @@ class Car (arcade.Sprite):
         self.pos += self.vel * delta_time
         self.center_x = self.pos[0]
         self.center_y = self.pos[1]
+
         
-        self.boundary = [self.right, self.bottom, self.left, self.top]
+        self.vision_vec =  [self.direct, self.rotate_Vec(self.direct, 45), self.rotate_Vec(self.direct, 90), self.rotate_Vec(self.direct, 135), self.rotate_Vec(self.direct, 180), self.rotate_Vec(self.direct, 225), self.rotate_Vec(self.direct, 270), self.rotate_Vec(self.direct, 315)]
+        # self.vision_vec =  [self.direct]
+
+    
+
+        
+
+        
         
         
          
@@ -178,7 +192,9 @@ class Welcome(arcade.Window):
         self.clear()
 
         self.Car.draw()
-        self.Car.draw_hit_box()
+        for i in self.Car.vision_points:
+            if i:
+                arcade.draw_circle_filled(i[0], i[1], 10, arcade.color.WHITE)
         self.Track.draw()
         arcade.draw_text(f"FA: {self.Car.len_vec(self.Car.F_a)}", 10, 50, arcade.color.BLACK)
         arcade.draw_text(f"FRESA: {self.Car.len_vec(self.Car.F_res_a)}", 10, 70, arcade.color.BLACK)
@@ -188,8 +204,31 @@ class Welcome(arcade.Window):
 
     def on_update(self, delta_time: float = 1 / 60):
         self.Car.update(delta_time)
+        self.car_vision()
+        
         if line_intersection(self.Car.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(self.Car.get_adjusted_hit_box(), self.Track.track[1]):
             self.death()
+
+
+    def car_vision(self):
+        self.Car.vision_points.clear()
+        self.Car.vision_points_distance.clear()
+        for i in self.Car.vision_vec:
+            segment = [[self.Car.center_x, self.Car.center_y], [self.Car.center_x + 1000 * i[0], self.Car.center_y + 1000 * i[1]]]
+            point_1 = line_intersection(segment, self.Track.track[0])
+            point_2 = line_intersection(segment, self.Track.track[1])
+            if not point_1 or not point_2:
+                self.Car.vision_points.append(point_1 or point_2) 
+            elif (self.Car.center_x - point_1[0])**2 + (self.Car.center_y - point_1[1])**2 < (self.Car.center_x - point_2[0])**2 + (self.Car.center_y - point_2[1])**2: self.Car.vision_points.append(point_1)
+            elif (self.Car.center_x - point_1[0])**2 + (self.Car.center_y - point_1[1])**2 > (self.Car.center_x - point_2[0])**2 + (self.Car.center_y - point_2[1])**2: self.Car.vision_points.append(point_2)
+        
+        if not self.Car.vision_points_OLD : self.Car.vision_points_OLD = self.Car.vision_points
+        for i in range(len(self.Car.vision_points)):
+            if self.Car.vision_points[i] == False : self.Car.vision_points[i] = self.Car.vision_points_OLD[i]
+
+            self.Car.vision_points_distance.append(math.sqrt ((self.Car.center_x - self.Car.vision_points[i][0])**2 + (self.Car.center_y - self.Car.vision_points[i][1])**2))
+        
+        self.Car.vision_points_OLD = self.Car.vision_points
 
     def on_key_press(self, symbol, modifiers):
 
@@ -241,48 +280,3 @@ if __name__ == "__main__":
     app = Welcome()
     arcade.run()
 
-
-def are_polygons_intersecting(poly_a,
-                              poly_b) -> bool:
-    """
-    Return True if two polygons intersect.
-
-    :param PointList poly_a: List of points that define the first polygon.
-    :param PointList poly_b: List of points that define the second polygon.
-    :Returns: True or false depending if polygons intersect
-
-    :rtype bool:
-    """
-
-    for polygon in (poly_a, poly_b):
-
-        for i1 in range(len(polygon)):
-            i2 = (i1 + 1) % len(polygon)
-            projection_1 = polygon[i1]
-            projection_2 = polygon[i2]
-
-            normal = (projection_2[1] - projection_1[1],
-                      projection_1[0] - projection_2[0])
-
-            min_a, max_a, min_b, max_b = (None,) * 4
-
-            for poly in poly_a:
-                projected = normal[0] * poly[0] + normal[1] * poly[1]
-
-                if min_a is None or projected < min_a:
-                    min_a = projected
-                if max_a is None or projected > max_a:
-                    max_a = projected
-
-            for poly in poly_b:
-                projected = normal[0] * poly[0] + normal[1] * poly[1]
-
-                if min_b is None or projected < min_b:
-                    min_b = projected
-                if max_b is None or projected > max_b:
-                    max_b = projected
-
-            if cast(float, max_a) <= cast(float, min_b) or cast(float, max_b) <= cast(float, min_a):
-                return False
-
-    return True
