@@ -2,7 +2,9 @@
 import math
 import arcade
 import numpy as np 
-        
+from read_map import track, read_track
+from variable import line_intersection
+
 # Imports
 
 
@@ -22,26 +24,27 @@ FRICTION = 0.02
 FRICTION_ROT = 0.1
 
 
-ENGINEFORCE = 1500000
+ENGINEFORCE = 1600000
 BRAKINGFORCE = ENGINEFORCE * 5
-C_DRAG = 2
-C_RR = 30 * C_DRAG
+C_DRAG = 0.7
+C_RR = 3000
 MASS = 900
 WHEEL_ROT_PER_SEC = 0.32
 WHEEL_ROT_MAX = 3
 
 FRICTION_MAX = 100000
 
-SCREEN_WIDTH = 1850
-SCREEN_HEIGHT = 1000
+SCREEN_WIDTH = 1800
+SCREEN_HEIGHT = 900
 SCREEN_TITLE = "CAR_AI"
 RADIUS = 150
 
 class Car (arcade.Sprite):
     def __init__(self, x, y, scale) -> None:
-        super().__init__("images/car.png", scale)
+        super().__init__("images/car.png", scale, hit_box_algorithm='None')
         self.center_y = y
         self.center_x = x
+        self.angle = 270
 
         self.L = math.sqrt( self.width**2 + self.height**2)
         self.wheel_rot = 0
@@ -58,16 +61,12 @@ class Car (arcade.Sprite):
         self.F_rr = np.array([1, 0]) 
         self.F_long = np.array([1, 0]) 
         
-        self.direct = np.array([1, 0]) 
+        self.direct = np.array([0, -1]) 
         self.acc = np.array([0., 0.]) 
         self.vel = np.array([0., 0.]) 
         self.pos = np.array([x, y]) 
         self.F_res_a = np.array([0., 0.]) 
         
-
-
-    def set_accel(self):
-        pass
 
     def rotate_Vec(self, vec, angle):
         angle = math.pi * angle / 180
@@ -95,8 +94,6 @@ class Car (arcade.Sprite):
 
         if self.up_pressed and not self.down_pressed:
             self.F_traction = self.direct * ENGINEFORCE
-        elif self.down_pressed and not self.up_pressed:
-            self.F_traction = - self.direct * BRAKINGFORCE
         else:
             self.F_traction = 0
 
@@ -127,15 +124,31 @@ class Car (arcade.Sprite):
         self.F_drag = - C_DRAG * self.len_vec(self.vel) * self.vel
         self.F_rr = - C_RR * self.vel
 
-        self.F_long = self.F_traction + self.F_drag + self.F_rr + self.F_a + self.F_res_a
+        self.F_long = self.F_traction + self.F_drag + self.F_rr
 
         self.acc = self.F_long / MASS
         self.vel += self.acc * delta_time
         self.pos += self.vel * delta_time
         self.center_x = self.pos[0]
         self.center_y = self.pos[1]
+        
+        self.boundary = [self.right, self.bottom, self.left, self.top]
+        
+        
          
 
+class Track ():
+    def __init__(self):
+        self.track = read_track()
+
+    def draw(self):
+        # self.track_sprites = arcade.SpriteList()
+        # self.player = arcade.Sprite()
+        # self.player.center_y = self.height / 2
+        # self.player.left = 10
+        # self.all_sprites.append(self.player)
+        arcade.draw_line_strip(track[0], arcade.color.BLACK)
+        arcade.draw_line_strip(track[1], arcade.color.BLACK)
 
         
 
@@ -150,10 +163,14 @@ class Welcome(arcade.Window):
 
         # Call the parent class constructor
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        
+
 
         # Set the background window
         arcade.set_background_color(arcade.color.GRAY)
-        self.Car = Car(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0.2)
+        self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
+        self.Track = Track()
+
         
 
 
@@ -161,6 +178,8 @@ class Welcome(arcade.Window):
         self.clear()
 
         self.Car.draw()
+        self.Car.draw_hit_box()
+        self.Track.draw()
         arcade.draw_text(f"FA: {self.Car.len_vec(self.Car.F_a)}", 10, 50, arcade.color.BLACK)
         arcade.draw_text(f"FRESA: {self.Car.len_vec(self.Car.F_res_a)}", 10, 70, arcade.color.BLACK)
         arcade.draw_text(f"FRICTION_MAX: {C_DRAG}", 10, 90, arcade.color.BLACK)
@@ -169,6 +188,8 @@ class Welcome(arcade.Window):
 
     def on_update(self, delta_time: float = 1 / 60):
         self.Car.update(delta_time)
+        if line_intersection(self.Car.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(self.Car.get_adjusted_hit_box(), self.Track.track[1]):
+            self.death()
 
     def on_key_press(self, symbol, modifiers):
 
@@ -209,6 +230,9 @@ class Welcome(arcade.Window):
 
         if symbol == arcade.key.RIGHT:
             self.Car.right_pressed = False
+    
+    def death(self):
+        self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
 
 
 
@@ -216,3 +240,49 @@ class Welcome(arcade.Window):
 if __name__ == "__main__":
     app = Welcome()
     arcade.run()
+
+
+def are_polygons_intersecting(poly_a,
+                              poly_b) -> bool:
+    """
+    Return True if two polygons intersect.
+
+    :param PointList poly_a: List of points that define the first polygon.
+    :param PointList poly_b: List of points that define the second polygon.
+    :Returns: True or false depending if polygons intersect
+
+    :rtype bool:
+    """
+
+    for polygon in (poly_a, poly_b):
+
+        for i1 in range(len(polygon)):
+            i2 = (i1 + 1) % len(polygon)
+            projection_1 = polygon[i1]
+            projection_2 = polygon[i2]
+
+            normal = (projection_2[1] - projection_1[1],
+                      projection_1[0] - projection_2[0])
+
+            min_a, max_a, min_b, max_b = (None,) * 4
+
+            for poly in poly_a:
+                projected = normal[0] * poly[0] + normal[1] * poly[1]
+
+                if min_a is None or projected < min_a:
+                    min_a = projected
+                if max_a is None or projected > max_a:
+                    max_a = projected
+
+            for poly in poly_b:
+                projected = normal[0] * poly[0] + normal[1] * poly[1]
+
+                if min_b is None or projected < min_b:
+                    min_b = projected
+                if max_b is None or projected > max_b:
+                    max_b = projected
+
+            if cast(float, max_a) <= cast(float, min_b) or cast(float, max_b) <= cast(float, min_a):
+                return False
+
+    return True
