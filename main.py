@@ -29,8 +29,9 @@ BRAKINGFORCE = ENGINEFORCE / 10
 C_DRAG = 0.7
 C_RR = 3000
 MASS = 900
-WHEEL_ROT_PER_SEC = 0.32
-WHEEL_ROT_MAX = 3
+WHEEL_ROT_PER_SEC = 0.5 * 60
+WHEEL_ROT_MAX = 5
+COUNT_CARS = 10
 
 FRICTION_MAX = 100000
 
@@ -41,7 +42,7 @@ RADIUS = 150
 
 class Car (arcade.Sprite):
     def __init__(self, x, y, scale) -> None:
-        super().__init__("images/car.png", scale, hit_box_algorithm='None')
+        super().__init__("images/car.png", scale, hit_box_algorithm='None', )
         self.center_y = y
         self.center_x = x
         self.angle = 270
@@ -106,10 +107,10 @@ class Car (arcade.Sprite):
             self.F_traction = 0
 
         if self.left_pressed and not self.right_pressed:
-            self.wheel_rot += WHEEL_ROT_PER_SEC
+            self.wheel_rot += WHEEL_ROT_PER_SEC * delta_time
             if WHEEL_ROT_MAX < self.wheel_rot: self.wheel_rot = WHEEL_ROT_MAX
         elif self.right_pressed and not self.left_pressed:
-            self.wheel_rot -= WHEEL_ROT_PER_SEC
+            self.wheel_rot -= WHEEL_ROT_PER_SEC * delta_time
             if -WHEEL_ROT_MAX > self.wheel_rot: self.wheel_rot = -WHEEL_ROT_MAX
         else:
             if math.fabs(self.wheel_rot) < WHEEL_ROT_PER_SEC:
@@ -186,7 +187,11 @@ class Welcome(arcade.Window):
 
         # Set the background window
         arcade.set_background_color(arcade.color.GRAY)
-        self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
+        # self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
+        self.Cars = []
+        for i in range(COUNT_CARS):
+            self.Cars.append (Car(120 + 2*i, SCREEN_HEIGHT / 2, 0.08))
+            self.Cars[i].alpha = 100
         self.Track = Track()
 
         
@@ -194,46 +199,52 @@ class Welcome(arcade.Window):
 
     def on_draw(self):
         self.clear()
-
-        self.Car.draw()
-        for i in self.Car.vision_points:
-            if i:
-                arcade.draw_circle_filled(i[0], i[1], 10, arcade.color.WHITE)
+        for i in self.Cars:
+            i.draw()
+        # self.Car.draw()
+        for i in self.Cars:
+            for j in i.vision_points:
+                if j:
+                    arcade.draw_circle_filled(j[0], j[1], 10, arcade.color.WHITE)
+        
         self.Track.draw()
-        arcade.draw_text(f"FA: {self.Car.len_vec(self.Car.F_a)}", 10, 50, arcade.color.BLACK)
-        arcade.draw_text(f"FRESA: {self.Car.len_vec(self.Car.F_res_a)}", 10, 70, arcade.color.BLACK)
+        # arcade.draw_text(f"FA: {self.Car.len_vec(self.Car.F_a)}", 10, 50, arcade.color.BLACK)
+        # arcade.draw_text(f"FRESA: {self.Car.len_vec(self.Car.F_res_a)}", 10, 70, arcade.color.BLACK)
         arcade.draw_text(f"FRICTION_MAX: {C_DRAG}", 10, 90, arcade.color.BLACK)
         # arcade.draw_text(f"FR: {FRICTION_ROT}", 10, 110, arcade.color.BLACK)
         
 
     def on_update(self, delta_time: float = 1 / 60):
-        self.Car.update(delta_time)
-        self.car_vision()
-        
-        if line_intersection(self.Car.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(self.Car.get_adjusted_hit_box(), self.Track.track[1]):
-            pass
-            self.death()
+        for i in self.Cars:
+            i.update(delta_time)
+        # self.Car.update(delta_time)
+        for i in self.Cars:
+            self.car_vision(i)
+
+        for i in range(len(self.Cars)):
+            if line_intersection(self.Cars[i].get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(self.Cars[i].get_adjusted_hit_box(), self.Track.track[1]):
+                self.Cars[i] = Car(120, SCREEN_HEIGHT / 2, 0.08)
 
 
-    def car_vision(self):
-        self.Car.vision_points.clear()
-        self.Car.vision_points_distance.clear()
-        for i in self.Car.vision_vec:
-            segment = [[self.Car.center_x, self.Car.center_y], [self.Car.center_x + 1000 * i[0], self.Car.center_y + 1000 * i[1]]]
+    def car_vision(self, CAR):
+        CAR.vision_points.clear()
+        CAR.vision_points_distance.clear()
+        for i in CAR.vision_vec:
+            segment = [[CAR.center_x, CAR.center_y], [CAR.center_x + 1000 * i[0], CAR.center_y + 1000 * i[1]]]
             point_1 = line_intersection(segment, self.Track.track[0])
             point_2 = line_intersection(segment, self.Track.track[1])
             if not point_1 or not point_2:
-                self.Car.vision_points.append(point_1 or point_2) 
-            elif (self.Car.center_x - point_1[0])**2 + (self.Car.center_y - point_1[1])**2 < (self.Car.center_x - point_2[0])**2 + (self.Car.center_y - point_2[1])**2: self.Car.vision_points.append(point_1)
-            elif (self.Car.center_x - point_1[0])**2 + (self.Car.center_y - point_1[1])**2 > (self.Car.center_x - point_2[0])**2 + (self.Car.center_y - point_2[1])**2: self.Car.vision_points.append(point_2)
+                CAR.vision_points.append(point_1 or point_2) 
+            elif (CAR.center_x - point_1[0])**2 + (CAR.center_y - point_1[1])**2 < (CAR.center_x - point_2[0])**2 + (CAR.center_y - point_2[1])**2: CAR.vision_points.append(point_1)
+            elif (CAR.center_x - point_1[0])**2 + (CAR.center_y - point_1[1])**2 > (CAR.center_x - point_2[0])**2 + (CAR.center_y - point_2[1])**2: CAR.vision_points.append(point_2)
         
-        # if not self.Car.vision_points_OLD : self.Car.vision_points_OLD = self.Car.vision_points
-        for i in range(len(self.Car.vision_points)):
-            if self.Car.vision_points[i] == False : self.Car.vision_points[i] = self.Car.vision_points_OLD[i]
+        # if not CAR.vision_points_OLD : CAR.vision_points_OLD = CAR.vision_points
+        for i in range(len(CAR.vision_points)):
+            if CAR.vision_points[i] == False : CAR.vision_points[i] = CAR.vision_points_OLD[i]
 
-            self.Car.vision_points_distance.append(math.sqrt ((self.Car.center_x - self.Car.vision_points[i][0])**2 + (self.Car.center_y - self.Car.vision_points[i][1])**2))
+            CAR.vision_points_distance.append(math.sqrt ((CAR.center_x - CAR.vision_points[i][0])**2 + (CAR.center_y - CAR.vision_points[i][1])**2))
         
-        self.Car.vision_points_OLD = self.Car.vision_points.copy()
+        CAR.vision_points_OLD = CAR.vision_points.copy()
 
     def on_key_press(self, symbol, modifiers):
 
@@ -249,34 +260,42 @@ class Welcome(arcade.Window):
             C_DRAG -= ALPHA
 
         if symbol == arcade.key.UP:
-            self.Car.up_pressed = True
+            for i in self.Cars:
+                i.up_pressed = True
 
         if symbol == arcade.key.DOWN:
-            self.Car.down_pressed = True
+            for i in self.Cars:
+                i.down_pressed = True
 
         if symbol == arcade.key.LEFT:
-            self.Car.left_pressed = True
+            for i in self.Cars:
+                i.left_pressed = True
 
         if symbol == arcade.key.RIGHT:
-            self.Car.right_pressed = True
+            for i in self.Cars:
+                i.right_pressed = True
             
 
     def on_key_release(self, symbol: int, modifiers: int):
         
         if symbol == arcade.key.UP:
-            self.Car.up_pressed = False
+            for i in self.Cars:
+                i.up_pressed = False
 
         if symbol == arcade.key.DOWN:
-            self.Car.down_pressed = False
+            for i in self.Cars:
+                i.down_pressed = False
 
         if symbol == arcade.key.LEFT:
-            self.Car.left_pressed = False
+            for i in self.Cars:
+                i.left_pressed = False
 
         if symbol == arcade.key.RIGHT:
-            self.Car.right_pressed = False
+            for i in self.Cars:
+                i.right_pressed = False
     
     def death(self):
-        self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
+        return Car(120, SCREEN_HEIGHT / 2, 0.08)
 
 
 
