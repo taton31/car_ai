@@ -6,7 +6,8 @@ W2_SHAPE = (3, 10)
 Y_SHAPE = 3
 B_SHAPE = 10
 ALPHA = 30
-ALPHA_LIT = ALPHA/2
+ALPHA_LIT = ALPHA * 2
+ALPHA_BIG = ALPHA / 2
 
 class AI():
     def __init__(self) -> None:
@@ -26,19 +27,19 @@ class AI():
         self.w1 = x
 
     def set_mix_w1(self, x, y):
-        self.w1 = x + y
+        self.w1 = (x + y) / 2
 
     def set_w2(self, x):
         self.w2 = x
 
     def set_mix_w2(self, x, y):
-        self.w2 = x + y
+        self.w2 = (x + y) / 2
 
     def set_b(self, x):
         self.b = x
 
     def set_mix_b(self, x, y):
-        self.b = x + y
+        self.b = (x + y) / 2
 
     def set_x(self, x):
         self.x = x
@@ -61,23 +62,34 @@ class AI():
     def mix_lit_b(self):
         self.b = self.b + (np.random.random(size=(B_SHAPE,)) / ALPHA_LIT) * 2 - 1. / ALPHA_LIT
 
+    def mix_big_w1(self):
+        self.w1 = self.w1 + (np.random.random(size=self.w1.shape) / ALPHA_BIG) * 2 - 1. / ALPHA_BIG
+
+    def mix_big_w2(self):
+        self.w2 = self.w2 + (np.random.random(size=self.w2.shape) / ALPHA_BIG) * 2 - 1. / ALPHA_BIG
+
+    def mix_big_b(self):
+        self.b = self.b + (np.random.random(size=(B_SHAPE,)) / ALPHA_BIG) * 2 - 1. / ALPHA_BIG
+
     def get_w1(self):
-        return self.w1.copy()
+        return self.w1
 
     def get_w2(self):
-        return self.w2.copy()
+        return self.w2
 
     def get_b(self):
-        return self.b.copy()
+        return self.b
+
+    def refresh(self):
+        self.w1 = np.random.random(size=W1_SHAPE) * 2 - 1
+        self.w2 = np.random.random(size=W2_SHAPE) * 2 - 1
+        self.b = np.random.random(size=(B_SHAPE,)) * 2 - 1
 
     def calc(self):
         z = np.dot(self.w1, self.x) + self.b
-        print (z)
         z = list(map(self.act, z))
-        print (z)
         z = np.dot(self.w2, z)
         z = list(map(self.act, z))
-        print (z)
         return z
 
 
@@ -85,8 +97,10 @@ class AI():
 
 if __name__ == "__main__":
     a=AI()
-    a.set_x((0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8))
-    print (a.calc())
+    w1 = np.array(((1,2),(3,4),(5,6)))/2
+    w2 = np.array(((3,2),(3,4),(5,6)))
+    a.set_mix_w1(w1,w2)
+    print (w1)
     
 
 
