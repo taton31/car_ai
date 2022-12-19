@@ -304,6 +304,7 @@ class Welcome(arcade.Window):
             if not i.remove_flag:
                 if line_intersection(i.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(i.get_adjusted_hit_box(), self.Track.track[1]):
                     i.remove_flag = True
+                    i.Candy_score *= 3/4
         global SUM_TIME
         global MAX_TIME
         global GEN
