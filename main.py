@@ -3,7 +3,9 @@ import math
 import arcade
 import numpy as np 
 from read_map import track, read_track
+from read_candy import read_candy
 from variable import line_intersection
+from ai_np import AI
 
 # Imports
 
@@ -31,7 +33,14 @@ C_RR = 3000
 MASS = 900
 WHEEL_ROT_PER_SEC = 0.5 * 60
 WHEEL_ROT_MAX = 5
-COUNT_CARS = 10
+
+COUNT_CARS = 8
+
+MAX_TIME = 5
+SUM_TIME = 0
+
+GEN = 0
+BEST_SCORE = 0
 
 FRICTION_MAX = 100000
 
@@ -40,12 +49,19 @@ SCREEN_HEIGHT = 900
 SCREEN_TITLE = "CAR_AI"
 RADIUS = 150
 
+
 class Car (arcade.Sprite):
     def __init__(self, x, y, scale) -> None:
         super().__init__("images/car.png", scale, hit_box_algorithm='None', )
+        self.AI = AI()
+        self.alpha = 100
+        self.Candy = Candy()
+        self.Candy_score = 0
         self.center_y = y
         self.center_x = x
         self.angle = 270
+
+        self.remove_flag = False
 
         self.L = math.sqrt( self.width**2 + self.height**2)
         self.wheel_rot = 0
@@ -69,11 +85,25 @@ class Car (arcade.Sprite):
         self.F_res_a = np.array([0., 0.])
 
         self.vision_vec =  [self.direct, self.rotate_Vec(self.direct, 45), self.rotate_Vec(self.direct, 90), self.rotate_Vec(self.direct, 135), self.rotate_Vec(self.direct, 180), self.rotate_Vec(self.direct, 225), self.rotate_Vec(self.direct, 270), self.rotate_Vec(self.direct, 315)]
-        # self.vision_vec =  [self.direct]
         
         self.vision_points = []
         self.vision_points_distance = []
+        self.vision_points_distance_standart = []
         self.vision_points_OLD = []
+
+
+    def draw (self):
+        super().draw()
+
+        # for j in self.vision_points:
+        #     if j:
+        #         arcade.draw_circle_filled(j[0], j[1], 10, arcade.color.WHITE)
+        
+        # self.Candy.draw()
+
+    def __del__(self):
+        del self.Candy
+
 
     def rotate_Vec(self, vec, angle):
         angle = math.pi * angle / 180
@@ -145,7 +175,46 @@ class Car (arcade.Sprite):
 
         
         self.vision_vec =  [self.direct, self.rotate_Vec(self.direct, 45), self.rotate_Vec(self.direct, 90), self.rotate_Vec(self.direct, 135), self.rotate_Vec(self.direct, 180), self.rotate_Vec(self.direct, 225), self.rotate_Vec(self.direct, 270), self.rotate_Vec(self.direct, 315)]
-        # self.vision_vec =  [self.direct]
+ 
+ 
+        if line_intersection(self.get_adjusted_hit_box(), self.Candy.Candy[0]):
+             
+            self.Candy_score += 1
+            self.Candy.Candy.pop(0)
+
+            if len(self.Candy.Candy) == 0:
+                self.Candy.refresh()
+
+        self.AI_update()
+        
+    def AI_update(self):
+        self.AI.set_x(self.vision_points_distance_standart)
+        z = self.AI.calc()
+        if z[0]:
+            self.up_pressed = True
+        else:  
+            self.up_pressed = False
+        
+        if z[1]:
+            self.right_pressed = True
+        else:  
+            self.right_pressed = False
+
+        if z[2]:
+            self.left_pressed = True
+        else:  
+            self.left_pressed = False
+
+        # if z[3]:
+        #     self.down_pressed = True
+        # else:  
+        #     self.down_pressed = False
+
+
+
+        
+
+
 
     
 
@@ -161,13 +230,24 @@ class Track ():
         self.track = read_track()
 
     def draw(self):
-        # self.track_sprites = arcade.SpriteList()
-        # self.player = arcade.Sprite()
-        # self.player.center_y = self.height / 2
-        # self.player.left = 10
-        # self.all_sprites.append(self.player)
         arcade.draw_line_strip(track[0], arcade.color.BLACK)
         arcade.draw_line_strip(track[1], arcade.color.BLACK)
+
+
+class Candy ():
+    def __init__(self):
+        self.Candy = read_candy()
+
+    def draw(self):
+        for i in self.Candy:
+            arcade.draw_line_strip(i, arcade.color.GREEN)
+
+    def refresh(self):
+        self.Candy = read_candy()
+
+    def __del__(self):
+        del self.Candy
+
 
         
 
@@ -190,9 +270,11 @@ class Welcome(arcade.Window):
         # self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
         self.Cars = []
         for i in range(COUNT_CARS):
-            self.Cars.append (Car(120 + 2*i, SCREEN_HEIGHT / 2, 0.08))
-            self.Cars[i].alpha = 100
+            self.Cars.append (Car(120, 580.0, 0.08))
+            
         self.Track = Track()
+
+        
 
         
 
@@ -200,33 +282,80 @@ class Welcome(arcade.Window):
     def on_draw(self):
         self.clear()
         for i in self.Cars:
-            i.draw()
+            if not i.remove_flag:
+                i.draw()    
         # self.Car.draw()
-        for i in self.Cars:
-            for j in i.vision_points:
-                if j:
-                    arcade.draw_circle_filled(j[0], j[1], 10, arcade.color.WHITE)
+        
         
         self.Track.draw()
-        # arcade.draw_text(f"FA: {self.Car.len_vec(self.Car.F_a)}", 10, 50, arcade.color.BLACK)
-        # arcade.draw_text(f"FRESA: {self.Car.len_vec(self.Car.F_res_a)}", 10, 70, arcade.color.BLACK)
-        arcade.draw_text(f"FRICTION_MAX: {C_DRAG}", 10, 90, arcade.color.BLACK)
-        # arcade.draw_text(f"FR: {FRICTION_ROT}", 10, 110, arcade.color.BLACK)
+        arcade.draw_text(f"GEN: {GEN}", 10, 50, arcade.color.BLACK)
+        arcade.draw_text(f"BEST SCORE: {BEST_SCORE}", 10, 70, arcade.color.BLACK)
+        arcade.draw_text(f"TIME CUR GEN: {SUM_TIME}", 10, 90, arcade.color.BLACK)
+        arcade.draw_text(f"MAX TIME: {MAX_TIME}", 10, 110, arcade.color.BLACK)
         
 
     def on_update(self, delta_time: float = 1 / 60):
         for i in self.Cars:
-            i.update(delta_time)
-        # self.Car.update(delta_time)
+            if not i.remove_flag:
+                self.car_vision(i)
+                i.update(delta_time)
+
         for i in self.Cars:
-            self.car_vision(i)
+            if not i.remove_flag:
+                if line_intersection(i.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(i.get_adjusted_hit_box(), self.Track.track[1]):
+                    i.remove_flag = True
+        global SUM_TIME
+        global MAX_TIME
+        global GEN
+        SUM_TIME += delta_time
 
-        for i in range(len(self.Cars)):
-            if line_intersection(self.Cars[i].get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(self.Cars[i].get_adjusted_hit_box(), self.Track.track[1]):
-                self.Cars[i] = Car(120, SCREEN_HEIGHT / 2, 0.08)
+        if not self.is_Cars_dead() or SUM_TIME > MAX_TIME:
+            iii, jjj = self.get_best_car()
+            SUM_TIME = 0
+            GEN += 1
+            w1_iii = self.Cars[iii].AI.get_w1() 
+            w2_iii = self.Cars[iii].AI.get_w2() 
+            b_iii = self.Cars[iii].AI.get_b() 
+
+            w1_jjj = self.Cars[jjj].AI.get_w1() 
+            w2_jjj = self.Cars[jjj].AI.get_w2() 
+            b_jjj = self.Cars[jjj].AI.get_b() 
+            self.Cars = []
+            for i in range(COUNT_CARS):
+                self.Cars.append (Car(120, 580.0, 0.08))
+                if i <= COUNT_CARS / 4:
+                    self.Cars[i].AI.set_w1(w1_iii)
+                    self.Cars[i].AI.set_w2(w2_iii)
+                    self.Cars[i].AI.set_b(b_iii)
+
+                    self.Cars[i].AI.mix_w1()
+                    self.Cars[i].AI.mix_w2()
+                    self.Cars[i].AI.mix_b()
+                if i > COUNT_CARS / 4 and i <= 2 * COUNT_CARS / 4:
+                    self.Cars[i].AI.set_w1(w1_jjj)
+                    self.Cars[i].AI.set_w2(w2_jjj)
+                    self.Cars[i].AI.set_b(b_jjj)
+
+                    self.Cars[i].AI.mix_w1()
+                    self.Cars[i].AI.mix_w2()
+                    self.Cars[i].AI.mix_b()
+                if i > 2 * COUNT_CARS / 4 and i <= 3 * COUNT_CARS / 4:
+                    self.Cars[i].AI.set_mix_w1(w1_iii, w1_jjj)
+                    self.Cars[i].AI.set_mix_w2(w2_iii, w2_jjj)
+                    self.Cars[i].AI.set_mix_b(b_iii, b_jjj)
+
+                    self.Cars[i].AI.mix_w1()
+                    self.Cars[i].AI.mix_w2()
+                    self.Cars[i].AI.mix_b()
+                if i > 3 * COUNT_CARS / 4:
+                    self.Cars[i].AI.set_mix_w1(w1_iii, w1_jjj)
+                    self.Cars[i].AI.set_mix_w2(w2_iii, w2_jjj)
+                    self.Cars[i].AI.set_mix_b(b_iii, b_jjj)
+                
+        
 
 
-    def car_vision(self, CAR):
+    def car_vision(self, CAR : Car):
         CAR.vision_points.clear()
         CAR.vision_points_distance.clear()
         for i in CAR.vision_vec:
@@ -243,57 +372,95 @@ class Welcome(arcade.Window):
             if CAR.vision_points[i] == False : CAR.vision_points[i] = CAR.vision_points_OLD[i]
 
             CAR.vision_points_distance.append(math.sqrt ((CAR.center_x - CAR.vision_points[i][0])**2 + (CAR.center_y - CAR.vision_points[i][1])**2))
-        
+
+        minim = min(CAR.vision_points_distance)
+        maxim = max(CAR.vision_points_distance)
+        CAR.vision_points_distance_standart = list(map(lambda x: (x - minim) / (maxim - minim),CAR.vision_points_distance))
+
         CAR.vision_points_OLD = CAR.vision_points.copy()
 
     def on_key_press(self, symbol, modifiers):
 
-        global C_DRAG
-        global ALPHA
+        global MAX_TIME
+        
 
         if symbol == arcade.key.O:
             # global FRICTION_ROT
-            C_DRAG += ALPHA
+            MAX_TIME += 1
 
         if symbol == arcade.key.P:
             # global FRICTION_ROT
-            C_DRAG -= ALPHA
+            MAX_TIME -= 1
 
         if symbol == arcade.key.UP:
             for i in self.Cars:
-                i.up_pressed = True
+                if not i.remove_flag:
+                    i.up_pressed = True
 
         if symbol == arcade.key.DOWN:
             for i in self.Cars:
-                i.down_pressed = True
+                if not i.remove_flag:
+                    i.down_pressed = True
 
         if symbol == arcade.key.LEFT:
             for i in self.Cars:
-                i.left_pressed = True
+                if not i.remove_flag:
+                    i.left_pressed = True
 
         if symbol == arcade.key.RIGHT:
             for i in self.Cars:
-                i.right_pressed = True
+                if not i.remove_flag:
+                    i.right_pressed = True
             
 
     def on_key_release(self, symbol: int, modifiers: int):
         
         if symbol == arcade.key.UP:
             for i in self.Cars:
-                i.up_pressed = False
+                if not i.remove_flag:
+                    i.up_pressed = False
 
         if symbol == arcade.key.DOWN:
             for i in self.Cars:
-                i.down_pressed = False
+                if not i.remove_flag:
+                    i.down_pressed = False
 
         if symbol == arcade.key.LEFT:
             for i in self.Cars:
-                i.left_pressed = False
+                if not i.remove_flag:
+                    i.left_pressed = False
 
         if symbol == arcade.key.RIGHT:
             for i in self.Cars:
-                i.right_pressed = False
+                if not i.remove_flag:
+                    i.right_pressed = False
     
+    def is_Cars_dead(self):
+        for i in self.Cars:
+            if not i.remove_flag:
+                return True
+        return False
+
+    def get_best_car(self):
+        global BEST_SCORE
+        max = 0
+        iii = 0
+        
+        for i in range(len(self.Cars)):
+            if self.Cars[i].Candy_score > max:
+                max = self.Cars[i].Candy_score
+                iii = i
+        BEST_SCORE = max
+
+        max = 0
+        jjj = 0
+        
+        for i in range(len(self.Cars)):
+            if i != iii and self.Cars[i].Candy_score > max:
+                max = self.Cars[i].Candy_score
+                jjj = i
+        return iii, jjj
+
     def death(self):
         return Car(120, SCREEN_HEIGHT / 2, 0.08)
 
