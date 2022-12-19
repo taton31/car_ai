@@ -1,9 +1,4 @@
-a=dict()
-a[9]=[2,3]
-a[5]='8'
-a[2]='2'
-a[3]='5'
+import os
+# a=list(map(lambda x: int(x[:x.find('.')]), os.listdir('par')))
 
-b=sorted(a)
-a.pop(list(a)[0])
-print (a)
+print(max(list(map(lambda x: int(x[:x.find('.')]), os.listdir('par')))))

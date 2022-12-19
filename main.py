@@ -7,6 +7,7 @@ from read_map import track, read_track
 from read_candy import read_candy
 from variable import line_intersection
 from ai_np import AI
+import os
 
 # Imports
 TMP = 0
@@ -66,6 +67,8 @@ class Car (arcade.Sprite):
         self.center_x = x
         self.angle = 90
 
+        self.stop_time = 0
+        
         self.remove_flag = False
 
         self.L = math.sqrt( self.width**2 + self.height**2)
@@ -192,8 +195,20 @@ class Car (arcade.Sprite):
             if len(self.Candy.Candy) == 0:
                 self.Candy.refresh()
 
+        
+        self.check_motion(delta_time)
         self.AI_update()
         
+    def check_motion(self, delta_time):
+        if not (self.up_pressed and not self.down_pressed): # and not self.left_pressed and not self.right_pressed: 
+            self.stop_time += delta_time
+        else: 
+            self.stop_time = 0
+        
+        if self.stop_time > 1.5:
+            self.remove_flag = True
+  
+
     def AI_update(self):
         self.AI.set_x(self.vision_points_distance_standart)
         z = self.AI.calc()
@@ -263,7 +278,7 @@ class Welcome(arcade.Window):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         
         global RAND_RAN_NUM
-        RAND_RAN_NUM = random.randint(0,1000)
+        RAND_RAN_NUM = max(list(map(lambda x: int(x[:x.find('.')]), os.listdir('par')))) + 1
         # Set the background window
         arcade.set_background_color(arcade.color.GRAY)
         # self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
@@ -282,7 +297,7 @@ class Welcome(arcade.Window):
 
     def on_draw(self):
         self.clear()
-        for i in range(1, len(self.Cars), 1):
+        for i in range(len(self.Cars)):
             if not self.Cars[i].remove_flag:
                 self.Cars[i].draw()    
         # self.Car.draw()
@@ -319,7 +334,7 @@ class Welcome(arcade.Window):
     def save_par(self):    
         global RAND_RAN_NUM 
         global GEN
-        if GEN % 50 == 0:
+        if GEN % 5 == 0:
             latest_sort = sorted(self.latest_)
             goal_sort = latest_sort[-1]
             w1=self.latest_[goal_sort][0]
@@ -360,12 +375,12 @@ class Welcome(arcade.Window):
             w2_kkk=w2_jjj
             b_kkk=b_jjj
         if GEN > 3 and self.Cars[iii].Candy_score < 6:
-            self.Cars = []
+            self.Cars.clear()
             for i in range(COUNT_CARS):
                 self.Cars.append (Car(120, 300.0, 0.08))
                 self.Cars[i].AI.refresh()
         else:
-            self.Cars = []
+            self.Cars.clear()
             for i in range(COUNT_CARS):
                 self.Cars.append (Car(120, 300.0, 0.08))
             for i in range(0, COUNT_CARS, 5):
@@ -444,12 +459,12 @@ class Welcome(arcade.Window):
         if len(latest_sort) > 5: self.latest_.pop(list(self.latest_)[0])
         
         if GEN > 3 and GEN<15 and self.Cars[iii].Candy_score < 6:
-            self.Cars = []
+            self.Cars.clear()
             for i in range(COUNT_CARS):
                 self.Cars.append (Car(120, 300.0, 0.08))
                 self.Cars[i].AI.refresh()
         else:
-            self.Cars = []
+            self.Cars.clear()
             for i in range(COUNT_CARS):
                 self.Cars.append (Car(120, 300.0, 0.08))
             for i in range(0, COUNT_CARS, 5):
@@ -507,12 +522,12 @@ class Welcome(arcade.Window):
         b_iii = self.Cars[iii].AI.get_b() 
         self.latest_[self.Cars[iii].Candy_score] = [w1_iii,w2_iii,b_iii]
         if GEN > 3 and GEN<15 and self.Cars[iii].Candy_score < 6:
-            self.Cars = []
+            self.Cars.clear()
             for i in range(COUNT_CARS):
                 self.Cars.append (Car(120, 300.0, 0.08))
                 self.Cars[i].AI.refresh()
         else:
-            self.Cars = []
+            self.Cars.clear()
             for i in range(COUNT_CARS):
                 self.Cars.append (Car(120, 300.0, 0.08))
             for i in range(0, COUNT_CARS):
@@ -608,6 +623,10 @@ class Welcome(arcade.Window):
                     i.right_pressed = False
     
     def is_Cars_dead(self):
+        j=0
+        for i in self.Cars:
+            if not i.remove_flag:
+                j+=1
         for i in self.Cars:
             if not i.remove_flag:
                 return True
