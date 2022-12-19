@@ -1,11 +1,17 @@
 import math
 import numpy as np
-X_SHAPE = 8
-W1_SHAPE = (10, 8)
-W2_SHAPE = (4, 10)
+X_SHAPE = 5
+W1_SHAPE = (4, 5)
+W2_SHAPE = (4, 4)
 Y_SHAPE = 4
-B_SHAPE = 10
-ALPHA = 10
+B_SHAPE = 4
+ALPHA = 20
+# X_SHAPE = 8
+# W1_SHAPE = (6, 8)
+# W2_SHAPE = (4, 6)
+# Y_SHAPE = 4
+# B_SHAPE = 6
+# ALPHA = 30
 ALPHA_LIT = ALPHA * 2
 ALPHA_BIG = ALPHA / 2
 
