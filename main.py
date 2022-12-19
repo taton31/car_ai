@@ -1,5 +1,6 @@
 
 import math
+import random
 import arcade
 import numpy as np 
 from read_map import track, read_track
@@ -9,7 +10,7 @@ from ai_np import AI
 
 # Imports
 TMP = 0
-
+RAND_RAN_NUM = 0
 # Constants
 # Speed limit
 MAX_SPEED = 12.0
@@ -39,7 +40,7 @@ COUNT_CARS = 8
 MAX_TIME = 5
 SUM_TIME = 0
 
-GEN = 0
+GEN = 1
 BEST_SCORE = 0
 BEST_SCORE_JJJ = 0
 
@@ -101,11 +102,11 @@ class Car (arcade.Sprite):
     def draw (self):
         super().draw()
 
-        for j in self.vision_points:
-            if j:
-                arcade.draw_circle_filled(j[0], j[1], 10, arcade.color.WHITE)
+        # for j in self.vision_points:
+        #     if j:
+        #         arcade.draw_circle_filled(j[0], j[1], 10, arcade.color.WHITE)
         
-        self.Candy.draw()
+        # self.Candy.draw()
 
     def __del__(self):
         del self.Candy
@@ -261,8 +262,8 @@ class Welcome(arcade.Window):
         # Call the parent class constructor
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         
-
-
+        global RAND_RAN_NUM
+        RAND_RAN_NUM = random.randint(0,1000)
         # Set the background window
         arcade.set_background_color(arcade.color.GRAY)
         # self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
@@ -311,9 +312,25 @@ class Welcome(arcade.Window):
         SUM_TIME += delta_time
 
         if not self.is_Cars_dead() or SUM_TIME > MAX_TIME:
+            self.save_par()
             self.car_mix_3(40)
             
-                
+            
+    def save_par(self):    
+        global RAND_RAN_NUM 
+        global GEN
+        if GEN % 50 == 0:
+            latest_sort = sorted(self.latest_)
+            goal_sort = latest_sort[-1]
+            w1=self.latest_[goal_sort][0]
+            w2=self.latest_[goal_sort][1]
+            b=self.latest_[goal_sort][2]
+            with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
+                file.write(f"GEN: {GEN}\n")
+                file.write(f"BEST SCORE: {goal_sort}\n")
+                file.write(np.array2string(w1) + '\n')
+                file.write(np.array2string(w2) + '\n')
+                file.write(np.array2string(b) + '\n\n')
         
     def car_mix_1(self):
         iii, jjj = self.get_best_car()
@@ -488,6 +505,7 @@ class Welcome(arcade.Window):
         w1_iii = self.Cars[iii].AI.get_w1() 
         w2_iii = self.Cars[iii].AI.get_w2() 
         b_iii = self.Cars[iii].AI.get_b() 
+        self.latest_[self.Cars[iii].Candy_score] = [w1_iii,w2_iii,b_iii]
         if GEN > 3 and GEN<15 and self.Cars[iii].Candy_score < 6:
             self.Cars = []
             for i in range(COUNT_CARS):
@@ -623,6 +641,8 @@ class Welcome(arcade.Window):
 
     def death(self):
         return Car(120, SCREEN_HEIGHT / 2, 0.08)
+
+
 
 
 
