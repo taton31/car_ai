@@ -2,10 +2,10 @@ import math
 import numpy as np
 X_SHAPE = 8
 W1_SHAPE = (10, 8)
-W2_SHAPE = (3, 10)
-Y_SHAPE = 3
+W2_SHAPE = (4, 10)
+Y_SHAPE = 4
 B_SHAPE = 10
-ALPHA = 30
+ALPHA = 10
 ALPHA_LIT = ALPHA * 2
 ALPHA_BIG = ALPHA / 2
 
@@ -51,6 +51,15 @@ class AI():
         self.w2 = self.w2 + (np.random.random(size=self.w2.shape) / ALPHA) * 2 - 1. / ALPHA
 
     def mix_b(self):
+        self.b = self.b + (np.random.random(size=(B_SHAPE,)) / ALPHA) * 2 - 1. / ALPHA
+
+    def mix_w1_AL(self, ALPHA):
+        self.w1 = self.w1 + (np.random.random(size=self.w1.shape) / ALPHA) * 2 - 1. / ALPHA
+
+    def mix_w2_AL(self, ALPHA):
+        self.w2 = self.w2 + (np.random.random(size=self.w2.shape) / ALPHA) * 2 - 1. / ALPHA
+
+    def mix_b_AL(self, ALPHA):
         self.b = self.b + (np.random.random(size=(B_SHAPE,)) / ALPHA) * 2 - 1. / ALPHA
 
     def mix_lit_w1(self):
