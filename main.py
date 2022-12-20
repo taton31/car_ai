@@ -202,7 +202,7 @@ class Car (arcade.Sprite):
             self.Candy.Candy_back.append(self.Candy.Candy.pop(0))
             global SUM_TIME
             if len(self.Candy.Candy) == 0:
-                self.Candy_score += 5 * 60. / SUM_TIME
+                self.Candy_score += 10 * 60. / SUM_TIME
                 self.Candy.refresh()
 
             
@@ -334,9 +334,11 @@ class Welcome(arcade.Window):
         self.Track.draw()
         arcade.draw_text(f"GEN: {GEN}", 10, 50, arcade.color.BLACK)
         arcade.draw_text(f"BEST SCORE: {round(BEST_SCORE,1)}, {round(BEST_SCORE_JJJ,1)}", 10, 70, arcade.color.BLACK)
-        arcade.draw_text(f"TIME CUR GEN: {SUM_TIME}", 10, 90, arcade.color.BLACK)
+        arcade.draw_text(f"TIME CUR GEN: {round(SUM_TIME, 1)}", 10, 90, arcade.color.BLACK)
         arcade.draw_text(f"MAX TIME: {MAX_TIME}", 10, 110, arcade.color.BLACK)
         
+        arcade.draw_text(f"BEST SCORE CUR: {round(self.best_score_cur(), 1)}", 10, SCREEN_HEIGHT - 30, arcade.color.BLACK)
+
 
     def on_update(self, delta_time: float = 1 / 60):
         for i in self.Cars:
@@ -360,6 +362,9 @@ class Welcome(arcade.Window):
             # self.car_mix_2()
             # self.car_mix_3(ALpha_)
             
+    def best_score_cur(self):
+        iii, jjj = self.get_best_car()
+        return self.Cars[iii].Candy_score
             
     def save_par(self):    
         global RAND_RAN_NUM 
@@ -675,17 +680,17 @@ class Welcome(arcade.Window):
             for i in range(0, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_)
             for i in range(1, COUNT_CARS, count):
-                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ * 3)
+                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ * 4)
             for i in range(2, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ / 2)
             for i in range(3, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_)
             for i in range(4, COUNT_CARS, count):
-                self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_ * 5)
+                self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_ * 4)
             for i in range(5, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_)
             for i in range(6, COUNT_CARS, count):
-                self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_ / 2)
+                self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_ * 4)
             for i in range(7, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ / 8)
         
@@ -827,15 +832,15 @@ def correct_ALPHA(a):
     if a < 100:
         ALpha_ = 10
     elif a < 200:
-        ALpha_ = 14
-    elif a < 300:
         ALpha_ = 18
+    elif a < 300:
+        ALpha_ = 26
     elif a < 400:
-        ALpha_ = 22
+        ALpha_ = 32
     elif a < 500:
-        ALpha_ = 24
+        ALpha_ = 40
     elif a < 600:
-        ALpha_ = 30
+        ALpha_ = 48
 
 
 # Main code entry point
