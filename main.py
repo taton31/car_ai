@@ -8,10 +8,14 @@ from read_candy import read_candy
 from variable import line_intersection
 from ai_np import AI
 import os
+import re
+from read_par import read_par
 
 # Imports
 TMP = 0
 RAND_RAN_NUM = 0
+
+READ_PAR = True
 
 ALpha_ = 10
 # Constants
@@ -40,7 +44,7 @@ MASS = 900
 WHEEL_ROT_PER_SEC = 0.5 * 60
 WHEEL_ROT_MAX = 5
 
-COUNT_CARS = 16
+COUNT_CARS = 32
 
 MAX_TIME = 60
 SUM_TIME = 0
@@ -118,7 +122,6 @@ class Car (arcade.Sprite):
 
     def __del__(self):
         del self.Candy
-
 
     def rotate_Vec(self, vec, angle):
         angle = math.pi * angle / 180
@@ -303,6 +306,14 @@ class Welcome(arcade.Window):
         for i in range(COUNT_CARS):
             self.Cars.append (Car(120, 300.0, 0.08))
             
+        if READ_PAR:
+            w1, w2, b = read_par()
+            for i in self.Cars:
+                i.AI.set_w1(w1)
+                i.AI.set_w2(w2)
+                i.AI.set_b(b)
+
+            
         self.Track = Track()
 
         self.latest_ = dict()
@@ -345,7 +356,7 @@ class Welcome(arcade.Window):
 
         if not self.is_Cars_dead() or SUM_TIME > MAX_TIME:
             self.save_par()
-            self.car_mix_4()
+            self.car_mix_5()
             # self.car_mix_2()
             # self.car_mix_3(ALpha_)
             
@@ -523,10 +534,6 @@ class Welcome(arcade.Window):
                 self.Cars[i].AI.set_mix_w2(w2_iii, w2_kkk)
                 self.Cars[i].AI.set_mix_b(b_iii, b_kkk)
 
-                # self.Cars[i].AI.mix_w1()
-                # self.Cars[i].AI.mix_w2()
-                # self.Cars[i].AI.mix_b()
-
     def car_mix_3(self, alpha):
         global SUM_TIME
         global GEN
@@ -568,6 +575,8 @@ class Welcome(arcade.Window):
             BEST_SCORE_NUMBER = iii
             BEST_SCORE_REPEAT_COUNT = 0
 
+        correct_ALPHA(iii)
+        
         self.latest_[self.Cars[iii].Candy_score] = [w1_iii,w2_iii,b_iii]
         latest_sort = sorted(self.latest_)
         
@@ -609,6 +618,70 @@ class Welcome(arcade.Window):
                 self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_)
             for i in range(4, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], 0)
+            for i in range(5, COUNT_CARS, count):
+                self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_)
+            for i in range(6, COUNT_CARS, count):
+                self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_ / 2)
+            for i in range(7, COUNT_CARS, count):
+                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ / 8)
+
+    def car_mix_5(self):
+        global SUM_TIME, GEN, BEST_SCORE_REPEAT_COUNT, BEST_SCORE_NUMBER
+        SUM_TIME = 0
+        GEN += 1
+        iii, jjj = self.get_best_car()
+        w1_iii = self.Cars[iii].AI.get_w1() 
+        w2_iii = self.Cars[iii].AI.get_w2() 
+        b_iii = self.Cars[iii].AI.get_b() 
+        if BEST_SCORE_NUMBER == iii:
+            BEST_SCORE_REPEAT_COUNT += 1
+        else: 
+            BEST_SCORE_NUMBER = iii
+            BEST_SCORE_REPEAT_COUNT = 0
+
+        correct_ALPHA(iii)
+        
+        self.latest_[self.Cars[iii].Candy_score] = [w1_iii,w2_iii,b_iii]
+        latest_sort = sorted(self.latest_)
+        
+        global BEST_SCORE_JJJ
+        if (len(latest_sort)) > 1:
+            if latest_sort[-1] == iii:
+                goal_sort = latest_sort[-2]
+            else:
+                goal_sort = latest_sort[-1]
+            BEST_SCORE_JJJ = goal_sort
+            w1_kkk=self.latest_[goal_sort][0]
+            w2_kkk=self.latest_[goal_sort][1]
+            b_kkk=self.latest_[goal_sort][2]
+        else:
+            BEST_SCORE_JJJ = 0
+            w1_kkk = self.Cars[jjj].AI.get_w1() 
+            w2_kkk = self.Cars[jjj].AI.get_w2() 
+            b_kkk = self.Cars[jjj].AI.get_b() 
+
+        if len(latest_sort) > 3: self.latest_.pop(list(self.latest_)[0])
+        
+        if self.Cars[iii].Candy_score < 9 or BEST_SCORE_REPEAT_COUNT > 10:
+            self.Cars.clear()
+            for i in range(COUNT_CARS):
+                self.Cars.append (Car(120, 300.0, 0.08))
+                self.Cars[i].AI.refresh()
+        else:
+            self.Cars.clear()
+            for i in range(COUNT_CARS):
+                self.Cars.append (Car(120, 300.0, 0.08))
+            count = 8
+            for i in range(0, COUNT_CARS, count):
+                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_)
+            for i in range(1, COUNT_CARS, count):
+                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ * 3)
+            for i in range(2, COUNT_CARS, count):
+                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ / 2)
+            for i in range(3, COUNT_CARS, count):
+                self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_)
+            for i in range(4, COUNT_CARS, count):
+                self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_ * 5)
             for i in range(5, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_)
             for i in range(6, COUNT_CARS, count):
@@ -725,12 +798,6 @@ class Welcome(arcade.Window):
                 return True
         return False
 
-    # def is_Cars_stop(self):
-    #     for i in self.Cars:
-    #         if not i.remove_flag:
-    #             return True
-    #     return False
-
     def get_best_car(self):
         global BEST_SCORE
         max = 0
@@ -755,7 +822,20 @@ class Welcome(arcade.Window):
         return Car(120, SCREEN_HEIGHT / 2, 0.08)
 
 
-
+def correct_ALPHA(a):
+    global ALpha_
+    if a < 100:
+        ALpha_ = 10
+    elif a < 200:
+        ALpha_ = 14
+    elif a < 300:
+        ALpha_ = 18
+    elif a < 400:
+        ALpha_ = 22
+    elif a < 500:
+        ALpha_ = 24
+    elif a < 600:
+        ALpha_ = 30
 
 
 # Main code entry point
