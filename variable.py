@@ -92,10 +92,39 @@ def line_intersection(a, b):
                 points.append(check_segment_intersection(segment_1, segment_2))
     mid_x = (a[0][0])  
     mid_y = (a[0][1]) 
-    for i in points:
-        if dist > math.sqrt((mid_x - i[0])**2 + (mid_y - i[1])**2):
-            dist = math.sqrt((mid_x - i[0])**2 + (mid_y - i[1])**2)
-            goal_point = i
+    for k in points:
+        if dist > math.sqrt((mid_x - k[0])**2 + (mid_y - k[1])**2):
+            dist = math.sqrt((mid_x - k[0])**2 + (mid_y - k[1])**2)
+            goal_point = k
+    return False if dist == 2000 else goal_point
+
+def line_intersection_car(a, b):
+    points = []
+    goal_point=[0,0]
+    dist = 2000
+    for i in range(0,len(a)-1): 
+        for j in range(0,len(b)-1):
+            point_a = Point(a[i][0], a[i][1])
+            point_b = Point(a[i+1][0], a[i+1][1])
+            point_c = Point(b[j][0], b[j][1])
+            point_d = Point(b[j+1][0], b[j+1][1])
+
+            len_car = 100
+            len_CD = math.sqrt((point_c.x - point_d.x) ** 2 + (point_c.y - point_d.y) ** 2) / 2
+            mid_CD = Point((point_c.x + point_d.x) / 2, (point_c.y + point_d.y) / 2)
+            len_car_CD = math.sqrt((mid_CD.x - point_a.x) ** 2 + (mid_CD.y - point_a.y) ** 2)
+            if len_car_CD > len_car + len_CD: continue
+
+            segment_1 = Segment(point_a, point_b)
+            segment_2 = Segment(point_c, point_d)
+            if check_segment_intersection(segment_1, segment_2):
+                points.append(check_segment_intersection(segment_1, segment_2))
+    mid_x = (a[0][0])  
+    mid_y = (a[0][1]) 
+    for k in points:
+        if dist > math.sqrt((mid_x - k[0])**2 + (mid_y - k[1])**2):
+            dist = math.sqrt((mid_x - k[0])**2 + (mid_y - k[1])**2)
+            goal_point = k
     return False if dist == 2000 else goal_point
 
 

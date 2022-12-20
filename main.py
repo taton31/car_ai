@@ -5,7 +5,7 @@ import arcade
 import numpy as np 
 from read_map import track, read_track
 from read_candy import read_candy
-from variable import line_intersection
+from variable import line_intersection, line_intersection_car
 from ai_np import AI
 import os
 import re
@@ -15,7 +15,9 @@ from read_par import read_par
 TMP = 0
 RAND_RAN_NUM = 0
 
-READ_PAR = True
+READ_PAR = False
+
+TYPE_CROSS = 'arifm'
 
 ALpha_ = 10
 # Constants
@@ -44,9 +46,9 @@ MASS = 900
 WHEEL_ROT_PER_SEC = 0.5 * 60
 WHEEL_ROT_MAX = 5
 
-COUNT_CARS = 32
+COUNT_CARS = 40
 
-MAX_TIME = 75
+MAX_TIME = 50
 SUM_TIME = 0
 
 GEN = 1
@@ -196,19 +198,19 @@ class Car (arcade.Sprite):
         self.vision_vec =  [self.direct, self.rotate_Vec(self.direct, 45), self.rotate_Vec(self.direct, 90), self.rotate_Vec(self.direct, 270), self.rotate_Vec(self.direct, 315)]
         
  
-        if line_intersection(self.get_adjusted_hit_box(), self.Candy.Candy[0]):
+        if line_intersection_car(self.get_adjusted_hit_box(), self.Candy.Candy[0]):
             
             self.Candy_score += 1
             self.Candy.Candy_back.append(self.Candy.Candy.pop(0))
             global SUM_TIME
             if len(self.Candy.Candy) == 0:
-                self.Candy_score += 10 * 60. / SUM_TIME
+                self.Candy_score += 50 * 60. / SUM_TIME
                 self.Candy.refresh()
 
             
             if len(self.Candy.Candy_back) > 5:
                 self.Candy.Candy_back.pop(0)
-        if len(self.Candy.Candy_back) > 5 and line_intersection(self.get_adjusted_hit_box(), self.Candy.Candy_back[0]):
+        if len(self.Candy.Candy_back) > 5 and line_intersection_car(self.get_adjusted_hit_box(), self.Candy.Candy_back[0]):
             self.Candy_score -= 10
             
         
@@ -269,9 +271,9 @@ class Candy ():
         self.Candy_back = []
 
     def draw(self):
-        # global TMP
-        # for i in range (TMP, len(self.Candy)):
-        #     arcade.draw_line_strip(self.Candy[i], arcade.color.GREEN)
+        global TMP
+        for i in range (TMP, len(self.Candy)):
+            arcade.draw_line_strip(self.Candy[i], arcade.color.GREEN)
 
         for i in range (len(self.Candy_back)):
             arcade.draw_line_strip(self.Candy_back[i], arcade.color.GREEN)
@@ -294,14 +296,11 @@ class Candy ():
 class Welcome(arcade.Window):
     def __init__(self):
 
-        # Call the parent class constructor
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
         
         global RAND_RAN_NUM
         RAND_RAN_NUM = max(list(map(lambda x: int(x[:x.find('.')]), os.listdir('par')))) + 1
-        # Set the background window
         arcade.set_background_color(arcade.color.GRAY)
-        # self.Car = Car(120, SCREEN_HEIGHT / 2, 0.08)
         self.Cars = []
         for i in range(COUNT_CARS):
             self.Cars.append (Car(120, 300.0, 0.08))
@@ -328,8 +327,6 @@ class Welcome(arcade.Window):
         for i in range(len(self.Cars)):
             if not self.Cars[i].remove_flag:
                 self.Cars[i].draw()    
-        # self.Car.draw()
-        
         
         self.Track.draw()
         arcade.draw_text(f"GEN: {GEN}", 10, 50, arcade.color.BLACK)
@@ -348,20 +345,18 @@ class Welcome(arcade.Window):
 
         for i in self.Cars:
             if not i.remove_flag:
-                if line_intersection(i.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection(i.get_adjusted_hit_box(), self.Track.track[1]):
+                if line_intersection_car(i.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection_car(i.get_adjusted_hit_box(), self.Track.track[1]):
                     i.remove_flag = True
                     # i.Candy_score *= 3/4
         global SUM_TIME
         global MAX_TIME
-        global GEN
+        global GEN, BEST_SCORE_JJJ, BEST_SCORE
         SUM_TIME += delta_time
 
         if not self.is_Cars_dead() or SUM_TIME > MAX_TIME:
-            self.save_par()
-            self.car_mix_6()
-            
-            # self.car_mix_3(ALpha_)
-            
+            self.save_par_2()
+            self.car_mix_7()
+                    
     def best_score_cur(self):
         iii, jjj = self.get_best_car()
         return self.Cars[iii].Candy_score
@@ -375,6 +370,21 @@ class Welcome(arcade.Window):
             w1=self.latest_[goal_sort][0]
             w2=self.latest_[goal_sort][1]
             b=self.latest_[goal_sort][2]
+            with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
+                file.write(f"GEN: {GEN}\n")
+                file.write(f"BEST SCORE: {goal_sort}\n")
+                file.write(np.array2string(w1) + '\n')
+                file.write(np.array2string(w2) + '\n')
+                file.write(np.array2string(b) + '\n\n')
+
+    def save_par_2(self):    
+        global RAND_RAN_NUM, BEST_SCORE
+        global GEN
+        if GEN % 50 == 0:
+            goal_sort, jjj = self.get_best_car()
+            w1=self.Cars[goal_sort].AI.get_w1()
+            w2=self.Cars[goal_sort].AI.get_w2()
+            b=self.Cars[goal_sort].AI.get_b()
             with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
                 file.write(f"GEN: {GEN}\n")
                 file.write(f"BEST SCORE: {goal_sort}\n")
@@ -746,20 +756,63 @@ class Welcome(arcade.Window):
             for i in range(0, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_)
             for i in range(1, COUNT_CARS, count):
-                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ * 4)
+                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ * 5)
             for i in range(2, COUNT_CARS, count):
-                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ / 2)
+                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ * 2)
             for i in range(3, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_)
             for i in range(4, COUNT_CARS, count):
-                self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_ * 4)
+                self.new_gen_car(self.Cars[i], [w1_kkk, w1_iii, w2_kkk, w2_iii, b_kkk, b_iii], ALpha_ * 5)
             for i in range(5, COUNT_CARS, count):
                 self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_)
             for i in range(6, COUNT_CARS, count):
-                self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_ * 4)
+                self.new_gen_car(self.Cars[i], [w1_iii, w2_iii, b_iii], ALpha_ * 5)
             for i in range(7, COUNT_CARS, count):
-                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ / 4)
+                self.new_gen_car(self.Cars[i], [w1_kkk, w2_kkk, b_kkk], ALpha_ / 2)
+
+    def car_mix_7(self):
+        global SUM_TIME, GEN, BEST_SCORE_REPEAT_COUNT, BEST_SCORE_NUMBER
+        SUM_TIME = 0
+        GEN += 1
+        selection_cars_par = self.get_best_car_tournament()
         
+        self.Cars.clear()
+        for i in range(COUNT_CARS):
+            self.Cars.append (Car(120, 300.0, 0.08))
+
+        
+        count = 9
+        for i in range(0, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'arifm', mutation= 2)
+        for i in range(1, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'blx', mutation= 2)
+        for i in range(2, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'arifm', mutation= 2)
+        for i in range(3, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'blx', mutation= 2)
+        for i in range(4, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'arifm', mutation= 2)
+        for i in range(5, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'blx', mutation= 2)
+        for i in range(6, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'arifm', mutation= 2)
+        for i in range(7, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'blx', mutation= 2)
+        for i in range(8, COUNT_CARS, count):
+            self.new_gen_car_cross(self.Cars[i], [selection_cars_par[2*i], selection_cars_par[2*i + 1]], type_cross= 'arifm', mutation= 2)
+
+        self.add_best_car()
+
+    def add_best_car(self):
+        iii, jjj = self.get_best_car()
+        w1 = self.Cars[iii].AI.get_w1() 
+        w2 = self.Cars[iii].AI.get_w2() 
+        b = self.Cars[iii].AI.get_b() 
+        self.new_gen_car_cross(self.Cars[-1], [[w1,w2,b], [w1,w2,b]], type_cross= 'mix', mutation= 0)
+        w1 = self.Cars[jjj].AI.get_w1() 
+        w2 = self.Cars[jjj].AI.get_w2() 
+        b = self.Cars[jjj].AI.get_b() 
+        self.new_gen_car_cross(self.Cars[-1], [[w1,w2,b], [w1,w2,b]], type_cross= 'mix', mutation= 0)
 
     def new_gen_car(self, car: Car, w12b, AL):
         if len(w12b) == 3:
@@ -774,6 +827,21 @@ class Welcome(arcade.Window):
             car.AI.mix_w1_AL(AL)
             car.AI.mix_w2_AL(AL)
             car.AI.mix_b_AL(AL)
+
+    def new_gen_car_cross(self, car: Car, w12b, type_cross = 'cross', mutation = 0):
+        if type_cross == 'mix':
+            car.AI.set_mix_w1(w12b[0][0], w12b[1][0])
+            car.AI.set_mix_w2(w12b[0][1], w12b[1][1])
+            car.AI.set_mix_b(w12b[0][2], w12b[1][2])
+        else:
+            car.AI.set_cross_w1(w12b[0][0], w12b[1][0], type=type_cross)
+            car.AI.set_cross_w2(w12b[0][1], w12b[1][1], type=type_cross)
+            car.AI.set_cross_b(w12b[0][2], w12b[1][2], type=type_cross)
+    
+        if mutation:
+            car.AI.mutation_w1(mutation)
+            car.AI.mutation_w2(mutation)
+            car.AI.mutation_b(mutation)
 
     def car_vision(self, CAR : Car):
         CAR.vision_points.clear()
@@ -889,6 +957,18 @@ class Welcome(arcade.Window):
                 jjj = j
         return iii, jjj
 
+    def get_best_car_tournament(self):
+        selection_cars = []
+        for i in range(2 * len(self.Cars)):
+            tournament_list = random.sample(self.Cars, 3)
+            max = -10
+            for j in range(len(tournament_list)):
+                if tournament_list[j].Candy_score > max:
+                    max = tournament_list[j].Candy_score
+                    iii = j
+            selection_cars.append([tournament_list[iii].AI.get_w1(), tournament_list[iii].AI.get_w2(), tournament_list[iii].AI.get_b()])
+        return selection_cars
+
     def death(self):
         return Car(120, SCREEN_HEIGHT / 2, 0.08)
 
@@ -898,15 +978,27 @@ def correct_ALPHA(a):
     if a < 100:
         ALpha_ = 10
     elif a < 200:
-        ALpha_ = 18
+        ALpha_ = 15
     elif a < 300:
-        ALpha_ = 26
+        ALpha_ = 20
     elif a < 400:
-        ALpha_ = 32
+        ALpha_ = 35
     elif a < 500:
-        ALpha_ = 40
+        ALpha_ = 50
     elif a < 600:
-        ALpha_ = 48
+        ALpha_ = 75
+    elif a < 700:
+        ALpha_ = 90
+    elif a < 800:
+        ALpha_ = 110
+    elif a < 900:
+        ALpha_ = 130
+    elif a < 1000:
+        ALpha_ = 150
+    elif a < 1200:
+        ALpha_ = 200
+    elif a < 1400:
+        ALpha_ = 300
 
 
 # Main code entry point

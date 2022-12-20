@@ -1,4 +1,5 @@
 import math
+import random
 import numpy as np
 X_SHAPE = 5
 W1_SHAPE = (4, 5)
@@ -6,6 +7,9 @@ W2_SHAPE = (4, 4)
 Y_SHAPE = 4
 B_SHAPE = 4
 ALPHA = 20
+ALPHA_MUT = 1
+
+ALPHA_BLX = 0.1
 # X_SHAPE = 8
 # W1_SHAPE = (6, 8)
 # W2_SHAPE = (4, 6)
@@ -34,6 +38,87 @@ class AI():
 
     def set_mix_w1(self, x, y):
         self.w1 = (x + y) / 2
+
+    def set_cross_w1(self, x, y, type = 'cross'):
+        if type == 'cross':
+            c = np.zeros(x.shape)
+            for i in range (c.shape[0]):
+                for j in range (c.shape[1]):
+                    c[i][j] = x[i][j] if random.randint(0,1) else y[i][j]
+            self.w1 = c
+        elif type == 'arifm':
+            lam = random.random()
+            self.w1 = x * lam + y * (1 - lam)
+        elif type == 'blx':
+            c = np.zeros(x.shape)
+            for i in range (c.shape[0]):
+                for j in range (c.shape[1]):
+                    minim = min(x[i][j], y[i][j]) - ALPHA_BLX
+                    maxim = max(x[i][j], y[i][j]) + ALPHA_BLX
+                    c[i][j] = minim + random.random() * (maxim - minim)
+            self.w1 = c
+
+    def set_cross_w2(self, x, y, type = 'cross'):
+        if type == 'cross':
+            c = np.zeros(x.shape)
+            for i in range (c.shape[0]):
+                for j in range (c.shape[1]):
+                    c[i][j] = x[i][j] if random.randint(0,1) else y[i][j]
+            self.w2 = c
+        elif type == 'arifm':
+            lam = random.random()
+            self.w2 = x * lam + y * (1 - lam)
+        elif type == 'blx':
+            c = np.zeros(x.shape)
+            for i in range (c.shape[0]):
+                for j in range (c.shape[1]):
+                    minim = min(x[i][j], y[i][j]) - ALPHA_BLX
+                    maxim = max(x[i][j], y[i][j]) + ALPHA_BLX
+                    c[i][j] = minim + random.random() * (maxim - minim)
+            self.w2 = c
+
+    def set_cross_b(self, x, y, type = 'cross'):
+        if type == 'cross':
+            c = np.zeros(x.shape)
+            for i in range (c.shape[0]):
+                c[i] = x[i] if random.randint(0,1) else y[i]
+            self.b = c
+        elif type == 'arifm':
+            lam = random.random()
+            self.b = x * lam + y * (1 - lam)
+        elif type == 'blx':
+            c = np.zeros(x.shape)
+            for i in range (c.shape[0]):
+                    minim = min(x[i], y[i]) - ALPHA_BLX
+                    maxim = max(x[i], y[i]) + ALPHA_BLX
+                    c[i] = minim + random.random() * (maxim - minim)
+            self.b = c
+    
+    def mutation_w1(self, AL):
+        rand_mut = (np.random.random(size=self.w1.shape) * 2 - 1) / AL
+        P = 1 / (self.w1.shape[0] * self.w1.shape[1])
+        for i in range (self.w1.shape[0]):
+            for j in range (self.w1.shape[1]):
+                self.w1[i][j] += 0 if random.random() < P else rand_mut[i][j]
+
+    def mutation_w2(self, AL):
+        rand_mut = (np.random.random(size=self.w2.shape) * 2 - 1) / AL
+        P = 1 / (self.w2.shape[0] * self.w2.shape[1])
+        for i in range (self.w2.shape[0]):
+            for j in range (self.w2.shape[1]):
+                self.w2[i][j] += 0 if random.random() < P else rand_mut[i][j]
+
+    def mutation_b(self, AL):
+        rand_mut = (np.random.random(size=self.b.shape) * 2 - 1) / AL
+        P = 1 / self.b.shape[0]
+        for i in range (self.b.shape[0]):
+            self.b[i] += 0 if random.random() < P else rand_mut[i]
+
+    def mix_w2_AL(self, ALPHA):
+        self.w2 = self.w2 + (np.random.random(size=self.w2.shape) / ALPHA) * 2 - 1. / ALPHA
+
+    def mix_b_AL(self, ALPHA):
+        self.b = self.b + (np.random.random(size=(B_SHAPE,)) / ALPHA) * 2 - 1. / ALPHA
 
     def set_w2(self, x):
         self.w2 = x
@@ -117,34 +202,3 @@ if __name__ == "__main__":
     a.set_mix_w1(w1,w2)
     print (w1)
     
-
-
-# def go(ls):
-#     x = np.array(ls) #8
-
-#     w11 = [0.3, 0.3, 0]
-#     w12 = [0.4, -0.5, 1]
-#     weight1 = np.array([w11, w12])  # матрица 2x3
-#     weight2 = np.array([-1, 1])     # вектор 1х2
-
-#     sum_hidden = np.dot(weight1, x)       # вычисляем сумму на входах нейронов скрытого слоя
-#     print("Значения сумм на нейронах скрытого слоя: "+str(sum_hidden))
-
-#     out_hidden = np.array([act(x) for x in sum_hidden])
-#     print("Значения на выходах нейронов скрытого слоя: "+str(out_hidden))
-
-#     sum_end = np.dot(weight2, out_hidden)
-#     y = act(sum_end)
-#     print("Выходное значение НС: "+str(y))
-
-#     return y
-
-# house = 1
-# rock = 0
-# attr = 1
-
-# res = go(house, rock, attr)
-# if res == 1:
-#     print("Ты мне нравишься")
-# else:
-#     print("Созвонимся")

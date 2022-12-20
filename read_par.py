@@ -1,5 +1,6 @@
 import numpy as np
 import re
+
 def read_par():
 
 
@@ -44,5 +45,43 @@ def read_par():
 
     return a[0], a[1], a[2]
 
+
+def read_par_2(str):
+
+
+    with open (f'good_par/{str}.txt', 'r') as f:
+        b = f.read().strip().split('\n\n')[-3:-1]
+        c=[]
+        for a in b:
+            a = a.replace('[[',']]').split(']]')[1:]
+            
+            a.pop(1)
+            a[0] = re.sub(" +", " ", a[0], dtype= float)
+            a[0] = a[0].split(']\n [')
+            a[0] = list(map(lambda x: x.strip().split(' '), a[0]))
+            a[0] = np.array(list(map(lambda x: list(map(lambda y: float(y), x)), a[0])))
+            # print(a[0])
+
+            a[1] = re.sub(" +", " ", a[1], dtype= float)
+            a[1] = a[1].split(']\n [')
+            a[1] = list(map(lambda x: x.strip().split(' '), a[1]))
+            a[1] = np.array(list(map(lambda x: list(map(lambda y: float(y), x)), a[1])))
+
+            a[2] = re.sub(" +", " ", a[2])
+            a[2] = a[2].replace('[', '').replace(']', '').strip().split(' ')
+            a[2] = list(map(lambda x: float(x), a[2]))
+            a[2] = np.array(a[2], dtype= float)
+            c.append([a[0], a[1], a[2]])
+
+    return c
+
 if __name__ == "__main__":
-    print(read_par())
+    # print(read_par())
+    a = read_par('tst')
+    b = [a[0][0] - a[1][0], a[0][1] - a[1][1], a[0][2] - a[1][2]]
+    # print (read_par('tst')[0])
+    for i in b:
+        print (i)
+        print ()
+    # w1_1, w2_1, b_1 = 
+    # w1_2, w2_2, b_2
