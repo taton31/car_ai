@@ -99,7 +99,7 @@ class Welcome(arcade.Window):
             for i in self.dp.population:
                 update_car(i)
         else:        
-            print (f"Прожило тиков: {CUR_TICK}")
+            # print (f"Прожило тиков: {CUR_TICK}")
             self.dp.population, self.dp.logbook = eaSimpleElitism_CONTINUE(self.dp.population, self.dp.toolbox,
                                                     cxpb=P_CROSSOVER,
                                                     mutpb=P_MUTATION,
@@ -114,11 +114,13 @@ class Welcome(arcade.Window):
                 i.car.set_zero_point()
             CUR_TICK = 0
             GEN += 1
-            TICK_MAX += 10
-            if GEN % 1 == 0:
-                    with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
-                        file.write(f"GEN: {GEN}\n")
-                        file.write(np.array2string(self.dp.hof.items[0].car.model.get_weights()) + '\n\n')
+            
+            if GEN % 15 == 0:
+                TICK_MAX += 10
+                with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
+                    file.write(f"GEN: {GEN}\n")
+                    file.write(f"MAX SCORE: {self.dp.hof.items[0].car.Candy_score}\n")
+                    file.write(np.array2string(self.dp.hof.items[0].car.model.get_weights()) + '\n\n')
 
         # for i in self.dp.population:
         #     if not i.car.remove_flag:
