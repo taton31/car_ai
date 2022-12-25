@@ -86,8 +86,10 @@ def eaSimpleElitism_START(population, toolbox, cxpb, mutpb, ngen, stats=None,
 
 def eaSimpleElitism_CONTINUE(population, toolbox, cxpb, mutpb, ngen, stats=None,
              halloffame=None, verbose=__debug__, callback=None, logbook=None, gen = 1):
-    
-    hof_size = len(halloffame.items) if halloffame.items else 0
+    if halloffame is not None:
+        hof_size = len(halloffame.items) if halloffame.items else 0
+    else:
+        hof_size = 0
     # Select the next generation individuals
     offspring = toolbox.select(population, len(population) - hof_size)
 
@@ -100,10 +102,11 @@ def eaSimpleElitism_CONTINUE(population, toolbox, cxpb, mutpb, ngen, stats=None,
     for ind, fit in zip(invalid_ind, fitnesses):
         ind.fitness.values = fit
 
-    offspring.extend(halloffame.items)
+    
 
     # Update the hall of fame with the generated individuals
     if halloffame is not None:
+        offspring.extend(halloffame.items)
         halloffame.update(offspring)
 
     # Replace the current population by the offspring

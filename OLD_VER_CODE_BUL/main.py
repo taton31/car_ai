@@ -237,7 +237,7 @@ class Welcome(arcade.Window):
 
                 
         
-        Q_result = self.AI.train(train_batch)
+        # Q_result = self.AI.train(train_batch)
         for i in range(len(self.Cars)):
             if not self.Cars[i].remove_flag:
                 i.update(delta_time)

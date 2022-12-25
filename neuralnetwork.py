@@ -15,7 +15,7 @@ class NNetwork:
         # формирование списка матриц весов для нейронов каждого слоя и списка функций активации
         self.n_layers = len(layers)
         for i in range(self.n_layers):
-            self.acts.append(self.act_relu)
+            self.acts.append(self.act_elu)
             if i == 0:
                 self.layers.append(self.getInitialWeights(layers[0], inputs+1))         # +1 - это вход для bias
             else:
@@ -26,8 +26,10 @@ class NNetwork:
     def getInitialWeights(self, n, m):
         return np.random.triangular(-1, 0, 1, size=(n, m))
 
-    def act_relu(self, x):
+    def act_elu(self, x):
         x[x < 0] = 0
+        for i in range(len(x)):
+            x[i] = x[i] if x[i] > 0 else 0.01 * x[i]
         return x
 
     def act_softmax(self, x):

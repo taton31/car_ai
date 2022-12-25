@@ -136,3 +136,56 @@ def intersection(x1y1, x2y2, x3y3, x4y4):
             px = 0
             py = 0
         return px, py
+
+
+
+def shape_intersection_car_AI(a, b):
+    points = []
+    for i in range(0,len(a)-1): 
+        for j in range(0,len(b)-1):
+            point = line_intersection_AI (a[i][0], a[i][1], a[i+1][0], a[i+1][1], b[j][0], b[j][1], b[j+1][0], b[j+1][1])
+            if point:
+                points.append(point)
+    return find_closest_point_AI([a[0][0], a[0][1]], points)
+
+
+
+def line_intersection_AI(x1, y1, x2, y2, x3, y3, x4, y4):
+    # Calculate the intersection of two lines
+    denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    
+
+    if denom == 0:
+        return False
+    else:
+        numx = (x1*y2 - y1*x2) * (x3 - x4) - (x1 - x2) * (x3*y4 - y3*x4)
+        numy = (x1*y2 - y1*x2) * (y3 - y4) - (y1 - y2) * (x3*y4 - y3*x4)
+        intersection_x = numx / denom
+        intersection_y = numy / denom
+
+    # Check if intersection point lies on both line segments
+    if ((intersection_x < min(x1, x2) or intersection_x > max(x1, x2)) or
+        (intersection_x < min(x3, x4) or intersection_x > max(x3, x4))):
+        return False
+
+    if ((intersection_y < min(y1, y2) or intersection_y > max(y1, y2)) or
+        (intersection_y < min(y3, y4) or intersection_y > max(y3, y4))):
+        return False
+
+    return (intersection_x, intersection_y)
+
+
+def find_closest_point_AI(A, points):
+    if not points: return False
+    # Set the initial closest distance to a large number
+    closest_distance = float('inf')
+    # Iterate over the points in the list
+    for p in points:
+        # Calculate the distance between A and p
+        distance = ((A[0] - p[0]) ** 2 + (A[1] - p[1]) ** 2) ** 0.5
+        # Update the closest distance and point if the current point is closer
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_point = p
+    # Return the closest point
+    return closest_point

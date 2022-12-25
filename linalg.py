@@ -23,7 +23,8 @@ def rotate_90(vec):
     rotatedY = - vec[0] / vel_len
     return np.array([rotatedX, rotatedY]) 
 
-def len_vec(vec):
+def len_vec(vec_p):
+    vec = np.array(vec_p)
     return math.sqrt(vec.dot(vec))
 
 
