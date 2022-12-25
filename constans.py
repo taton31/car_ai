@@ -3,7 +3,7 @@ RAND_RAN_NUM = 0
 READ_PAR = False
 
 TICK_SUM = 0
-TICK_MAX = 500
+TICK_MAX = 50
 AI_INPUT_SHAPE = 13
 AI_MIDDLE_SHAPE = 16
 AI_OUTPUT_SHAPE = 9
@@ -18,7 +18,7 @@ POPULATION_SIZE = 20   # количество индивидуумов в поп
 P_CROSSOVER = 0.9       # вероятность скрещивания
 P_MUTATION = 0.1        # вероятность мутации индивидуума
 MAX_GENERATIONS = 5000    # максимальное количество поколений
-HALL_OF_FAME_SIZE = 2
+HALL_OF_FAME_SIZE = 1
 
 MAX_SPEED = 12.0
 MAX_SPEED_ROT = 3.0
@@ -37,6 +37,7 @@ COUNT_CARS = 8
 CAR_START_X = 250
 CAR_START_Y = 830.
 
+CUR_TICK = 0
 GEN = 1
 
 SCREEN_WIDTH = 1800

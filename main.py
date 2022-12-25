@@ -82,7 +82,8 @@ class Welcome(arcade.Window):
         
         self.Track.draw()
 
-        arcade.draw_text(f"GEN: {GEN}", 10, 50, arcade.color.BLACK)
+        arcade.draw_text(f"GEN:  {GEN}", 10, 50, arcade.color.BLACK)
+        arcade.draw_text(f"TICK: {CUR_TICK}", 10, 70, arcade.color.BLACK)
         # arcade.draw_text(f"BEST SCORE: {round(BEST_SCORE,1)}, {round(BEST_SCORE_JJJ,1)}", 10, 70, arcade.color.BLACK)
         # arcade.draw_text(f"TIME CUR GEN: {round(SUM_TIME, 1)}", 10, 90, arcade.color.BLACK)
         # arcade.draw_text(f"BEST SCORE CUR: {round(self.best_score_cur(), 1)}", 10, SCREEN_HEIGHT - 30, arcade.color.BLACK)
@@ -91,15 +92,14 @@ class Welcome(arcade.Window):
     def on_update(self, delta_time: float = 1 / 60):
 
         # вызов поколения  
-        cur_tick = 0
-        global GEN  
-        GEN += 1
-        if cur_tick < 2 and not self.is_Cars_dead():
-            cur_tick += 1
+        global GEN, CUR_TICK, TICK_MAX 
+        
+        if CUR_TICK < TICK_MAX and self.is_ex_live_Car():
+            CUR_TICK += 1
             for i in self.dp.population:
                 update_car(i)
         else:        
-            print (f"Прожило тиков: {cur_tick}")
+            print (f"Прожило тиков: {CUR_TICK}")
             self.dp.population, self.dp.logbook = eaSimpleElitism_CONTINUE(self.dp.population, self.dp.toolbox,
                                                     cxpb=P_CROSSOVER,
                                                     mutpb=P_MUTATION,
@@ -109,12 +109,16 @@ class Welcome(arcade.Window):
                                                     verbose=True,
                                                     logbook=self.dp.logbook,
                                                     gen = GEN)
-            cur_tick = 0
+            
+            for i in self.dp.population:
+                i.car.set_zero_point()
+            CUR_TICK = 0
             GEN += 1
+            TICK_MAX += 10
             if GEN % 1 == 0:
                     with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
                         file.write(f"GEN: {GEN}\n")
-                        file.write(self.dp.hof.items[0].car.model.get_weights() + '\n\n')
+                        file.write(np.array2string(self.dp.hof.items[0].car.model.get_weights()) + '\n\n')
 
         # for i in self.dp.population:
         #     if not i.car.remove_flag:
@@ -187,9 +191,10 @@ class Welcome(arcade.Window):
     #         for i in self.Cars:
     #             if not i.remove_flag:
     #                 i.right_pressed = False
-    
 
-    def is_Cars_dead(self):
+        
+
+    def is_ex_live_Car(self):
         for i in self.dp.population:
             if not i.car.remove_flag:
                 return True

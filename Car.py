@@ -28,6 +28,7 @@ class Car (arcade.Sprite):
         
         self.Candy = Candy()
         self.Track = Track()
+        
         self.center_y = y
         self.center_x = x
         self.angle = 0
@@ -55,6 +56,11 @@ class Car (arcade.Sprite):
         self.acc = np.array([0., 0.]) 
         self.vel = np.array([0., 0.]) 
         self.pos = np.array([x, y]) 
+
+        self.start_x = self.center_x
+        self.start_y = self.center_y
+        self.start_angle = self.angle
+        self.start_direct = self.direct
 
         self.vision_vec =  [self.direct, rotate_Vec(self.direct, 30), rotate_Vec(self.direct, 90), rotate_Vec(self.direct, 150), rotate_Vec(self.direct, 180), rotate_Vec(self.direct, -30), rotate_Vec(self.direct, -90), rotate_Vec(self.direct, -150)]
         # self.vision_vec =  [rotate_Vec(self.direct, 90), rotate_Vec(self.direct, 45), self.direct, rotate_Vec(self.direct, 315), rotate_Vec(self.direct, 270)]
@@ -206,6 +212,21 @@ class Car (arcade.Sprite):
         normalizedState = [*self.vision_points_distance_standart, normalizedForwardVelocity, normalizedReverseVelocity,
                            normalizedPosDrift, normalizedNegDrift, normalizedAngleOfNextGate]
         return np.reshape(np.array(normalizedState), (1, AI_INPUT_SHAPE))
+
+    def set_zero_point(self):
+        self.center_x = self.start_x
+        self.center_y = self.start_y
+        self.angle = self.start_angle
+        self.direct = self.start_direct
+        self.Candy_score = 1
+        self.Candy = Candy()
+        self.wheel_rot = 0
+        self.state = []
+        self.acc = np.array([0., 0.]) 
+        self.vel = np.array([0., 0.])
+        self.pos = np.array([self.center_x, self.center_y]) 
+        self.vision_vec =  [self.direct, rotate_Vec(self.direct, 30), rotate_Vec(self.direct, 90), rotate_Vec(self.direct, 150), rotate_Vec(self.direct, 180), rotate_Vec(self.direct, -30), rotate_Vec(self.direct, -90), rotate_Vec(self.direct, -150)]
+
 
 
 
