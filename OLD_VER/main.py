@@ -5,7 +5,7 @@ import arcade
 import numpy as np 
 from read_map import track, read_track
 from read_candy import read_candy
-from variable import line_intersection, line_intersection_car
+from intersection import line_intersection, line_intersection_car
 from ai_np import AI
 import os
 import re

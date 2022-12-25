@@ -3,7 +3,22 @@ RAND_RAN_NUM = 0
 READ_PAR = False
 
 TICK_SUM = 0
-TICK_MAX = 6000
+TICK_MAX = 500
+AI_INPUT_SHAPE = 13
+AI_MIDDLE_SHAPE = 16
+AI_OUTPUT_SHAPE = 9
+
+LENGTH_CHROM = 409
+LOW = -1.0
+UP = 1.0
+ETA = 20
+
+# константы генетического алгоритма
+POPULATION_SIZE = 20   # количество индивидуумов в популяции
+P_CROSSOVER = 0.9       # вероятность скрещивания
+P_MUTATION = 0.1        # вероятность мутации индивидуума
+MAX_GENERATIONS = 5000    # максимальное количество поколений
+HALL_OF_FAME_SIZE = 2
 
 MAX_SPEED = 12.0
 MAX_SPEED_ROT = 3.0
