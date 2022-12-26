@@ -12,4 +12,6 @@ def read_par(str):
         return a
 
 if __name__ == "__main__":
-    a = read_par('44')
+    a = list(read_par('44'))
+
+    print(a)

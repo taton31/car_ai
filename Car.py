@@ -19,12 +19,13 @@ class Car (arcade.Sprite):
         self.model = NNetwork(AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE)
         global LENGTH_CHROM
         LENGTH_CHROM = NNetwork.getTotalWeights(AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE)
-        if READ_PAR: self.model.set_weights(read_par('45'))
         # print (LENGTH_CHROM)
         self.stop_time = 0
         self.left_time = 0
         self.right_time = 0
         self.Candy_score = -1
+
+        self.set_W = False
 
         self.alpha = 100
         
@@ -245,6 +246,7 @@ class Car (arcade.Sprite):
         self.direct = self.start_direct
         self.Candy_score = -1
         self.Candy = Candy()
+        self.set_W = False
         self.wheel_rot = 0
         self.state = []
         self.remove_flag = False

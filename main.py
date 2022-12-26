@@ -8,10 +8,10 @@ from read_map import track, read_track
 # from intersection import line_intersection, line_intersection_car
 # from ai_np import AI
 import os
-# from read_par import read_par
+from read_par import read_par
 from constans import *
 from linalg import *
-from dp import DP, getScore, update_car
+from dp import DP, getScore, update_car, update_car_2, set_car_w
 from algelitism import eaSimpleElitism_START, eaSimpleElitism_CONTINUE 
 # from Car import Car
 from multiprocessing import Pool
@@ -37,7 +37,12 @@ class Welcome(arcade.Window):
 
         # self.car_refresh()
         # self.scan_par(READ_PAR)
+        self.x = arcade.Sprite("images/car.png", 0.08, hit_box_algorithm='None')
+
         self.dp = DP()
+        
+        self.p=Pool(POPULATION_SIZE)
+        
         self.Track = Track()
         self.draw_cars=[]
         
@@ -54,16 +59,24 @@ class Welcome(arcade.Window):
     def cars_to_draw(self, pop):
         for i in pop:
             if not i.car.remove_flag:
-                x = arcade.Sprite("images/car.png", 0.08, hit_box_algorithm='None')
-                x.center_y = i.car.center_y
-                x.center_x = i.car.center_x
-                x.angle = i.car.angle
-                x.alpha = 100
-                x.draw()
+                self.x.center_y = i.car.center_y
+                self.x.center_x = i.car.center_x
+                self.x.angle = i.car.angle
+                self.x.alpha = 100
+                self.x.draw()
+
+    def car_draw_best(self):
+        
+        x = arcade.Sprite("images/car.png", 0.08, hit_box_algorithm='None')
+        x.center_y = self.dp.get_best().car.center_y
+        x.center_x = self.dp.get_best().car.center_x
+        x.angle = self.dp.get_best().car.angle
+        x.draw()
 
     def on_draw(self):
         self.clear()
         self.cars_to_draw(self.dp.population)
+        # self.car_draw_best()
 
         # car = self.dp.population[0]
         # car.car.draw()
@@ -93,65 +106,74 @@ class Welcome(arcade.Window):
             for i in self.dp.population:
                 update_car(i)
 
-            # self.dp.toolbox.map(update_car, self.dp.population)
+            # for i in self.dp.population:
+            #     set_car_w(i)
+            # tst = []
+            # for i in self.dp.population:
+            #     tst.append(i.car)
+
+            # for i in tst:
+            #     update_car_2(i)
+            # with Pool() as p:
+            # self.p.map(update_car_2, tst)
+            # self.dp.toolbox.map(update_car_2, tst)
 
 
         else:        
             # print (f"Прожило тиков: {CUR_TICK}")
             if GEN % 15 == 0:
-                TICK_MAX += 100
-                print (f"Количество тиков: {TICK_MAX}")
+                # TICK_MAX += 100
+                # print (f"Количество тиков: {TICK_MAX}")
                 with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
                     file.write(f"GEN: {GEN}\n")
                     file.write(f"MAX SCORE: {self.dp.logbook[-1]['max']}\n")
-                    file.write(np.array2string(self.dp.hof.items[0].car.model.get_weights()) + '\n\n')
-
-
-            if self.dp.logbook[-1]['max'] <= 22:
-                self.dp.change_indpb(10)
-                self.dp.population, self.dp.logbook = eaSimpleElitism_CONTINUE(self.dp.population, self.dp.toolbox,
-                                                    cxpb=P_CROSSOVER,
-                                                    mutpb=0.8,
-                                                    ngen=MAX_GENERATIONS,
-                                                    halloffame=None,
-                                                    # halloffame=self.dp.hof,
-                                                    stats=self.dp.stats,
-                                                    verbose=True,
-                                                    logbook=self.dp.logbook,
-                                                    gen = GEN)
+                    file.write(np.array2string(self.dp.get_best().car.model.get_weights()) + '\n\n')
             
+            sigma = 2.0
+            if GEN == 1 and READ_PAR: 
+                self.dp.change_indpb(sigma * 1)
+                self.elitism(0.1)
+            elif self.dp.logbook[-1]['max'] <= 22:
+                self.dp.change_indpb(sigma * 10)
+                self.elitism(0.8)
                 
             elif 22 < self.dp.logbook[-1]['max'] <= 30:
-                self.dp.change_indpb(5)
-                self.dp.population, self.dp.logbook = eaSimpleElitism_CONTINUE(self.dp.population, self.dp.toolbox,
-                                                    cxpb=P_CROSSOVER,
-                                                    mutpb=0.4,
-                                                    ngen=MAX_GENERATIONS,
-                                                    halloffame=None,
-                                                    # halloffame=self.dp.hof,
-                                                    stats=self.dp.stats,
-                                                    verbose=True,
-                                                    logbook=self.dp.logbook,
-                                                    gen = GEN)
-            elif self.dp.logbook[-1]['max'] > 30:
-                self.dp.change_indpb(1)
-                self.dp.population, self.dp.logbook = eaSimpleElitism_CONTINUE(self.dp.population, self.dp.toolbox,
-                                                    cxpb=P_CROSSOVER,
-                                                    mutpb=P_MUTATION,
-                                                    ngen=MAX_GENERATIONS,
-                                                    halloffame=None,
-                                                    # halloffame=self.dp.hof,
-                                                    stats=self.dp.stats,
-                                                    verbose=True,
-                                                    logbook=self.dp.logbook,
-                                                    gen = GEN)
+                self.dp.change_indpb(sigma * 7)
+                self.elitism(0.6)
+
+            elif 30 < self.dp.logbook[-1]['max'] <= 55:
+                self.dp.change_indpb(sigma * 5)
+                self.elitism(0.4)
+
+            elif 55 < self.dp.logbook[-1]['max'] <= 70:
+                self.dp.change_indpb(sigma * 3)
+                self.elitism(0.2)
+
+            elif 70 < self.dp.logbook[-1]['max']:
+                self.dp.change_indpb(sigma * 1)
+                self.elitism(0.7)
+
+            else:
+                self.dp.change_indpb(sigma * 1)
+                self.elitism(0.7)
+            
 
             for i in self.dp.population:
                 i.car.set_zero_point()
             CUR_TICK = 0
             GEN += 1
             
-
+    def elitism(self, mutpb):
+        self.dp.population, self.dp.logbook = eaSimpleElitism_CONTINUE(self.dp.population, self.dp.toolbox,
+                                                cxpb=P_CROSSOVER,
+                                                mutpb=mutpb,
+                                                ngen=MAX_GENERATIONS,
+                                                halloffame=None,
+                                                # halloffame=self.dp.hof,
+                                                stats=self.dp.stats,
+                                                verbose=True,
+                                                logbook=self.dp.logbook,
+                                                gen = GEN)
         # for i in self.dp.population:
         #     if not i.car.remove_flag:
         #         getScore(i)

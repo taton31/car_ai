@@ -9,7 +9,7 @@ def read_par(str):
         a = a[a.find('[')+1:a.find(']')].replace('\n', ' ')
         a = re.sub(" +", " ", a)
         a=np.fromstring(a, count = LENGTH_CHROM, sep=' ')
-        return a
+        return list(a)
 
 if __name__ == "__main__":
     a = read_par('44')
