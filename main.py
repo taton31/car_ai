@@ -93,7 +93,7 @@ class Welcome(arcade.Window):
         pass
 
 
-    def on_update(self, delta_time: float = 1 / 60):
+    def on_update(self, delta_time: float = 1/60):
 
         # вызов поколения  
         global GEN, CUR_TICK, TICK_MAX 
@@ -129,20 +129,20 @@ class Welcome(arcade.Window):
                     file.write(f"MAX SCORE: {self.dp.logbook[-1]['max']}\n")
                     file.write(np.array2string(self.dp.get_best().car.model.get_weights()) + '\n\n')
             
-            sigma = 1.0
+            sigma = 2.0
             if GEN == 1 and READ_PAR: 
                 self.dp.change_indpb(sigma * 1)
                 self.elitism(0.1)
             elif self.dp.logbook[-1]['max'] <= 22:
-                self.dp.change_indpb(sigma * 10)
+                self.dp.change_indpb(sigma * 8)
                 self.elitism(0.8)
                 
             elif 22 < self.dp.logbook[-1]['max'] <= 30:
-                self.dp.change_indpb(sigma * 7)
+                self.dp.change_indpb(sigma * 6)
                 self.elitism(0.6)
 
             elif 30 < self.dp.logbook[-1]['max'] <= 55:
-                self.dp.change_indpb(sigma * 5)
+                self.dp.change_indpb(sigma * 4)
                 self.elitism(0.4)
 
             elif 55 < self.dp.logbook[-1]['max'] <= 70:
@@ -151,11 +151,11 @@ class Welcome(arcade.Window):
 
             elif 70 < self.dp.logbook[-1]['max']:
                 self.dp.change_indpb(sigma * 1)
-                self.elitism(0.2)
+                self.elitism(0.3)
 
             else:
                 self.dp.change_indpb(sigma * 1)
-                self.elitism(0.2)
+                self.elitism(0.3)
             
 
             for i in self.dp.population:
@@ -259,7 +259,6 @@ if __name__ == "__main__":
     RAND_RAN_NUM = max(list(map(lambda x: int(x[:x.find('.')]), os.listdir('par')))) + 1
 
     app = Welcome()
-
     arcade.run()
 
     

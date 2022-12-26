@@ -100,7 +100,8 @@ def update_car(individual):
 
     individual.car.check_crush()
 
-    individual.car.vision_vec =  [individual.car.direct, rotate_Vec(individual.car.direct, 30), rotate_Vec(individual.car.direct, 90), rotate_Vec(individual.car.direct, 150), rotate_Vec(individual.car.direct, 180), rotate_Vec(individual.car.direct, -30), rotate_Vec(individual.car.direct, -90), rotate_Vec(individual.car.direct, -150)]
+    # individual.car.vision_vec =  [individual.car.direct, rotate_Vec(individual.car.direct, 30), rotate_Vec(individual.car.direct, 90), rotate_Vec(individual.car.direct, 150), rotate_Vec(individual.car.direct, 180), rotate_Vec(individual.car.direct, -30), rotate_Vec(individual.car.direct, -90), rotate_Vec(individual.car.direct, -150)]
+    individual.car.vision_vec =  [individual.car.direct, rotate_Vec(individual.car.direct, 30), rotate_Vec(individual.car.direct, 90), rotate_Vec(individual.car.direct, -30), rotate_Vec(individual.car.direct, -90)]
 
     if line_intersection_car(individual.car.get_adjusted_hit_box(), individual.car.Candy.Candy[0]):
         

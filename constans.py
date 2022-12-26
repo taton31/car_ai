@@ -1,11 +1,11 @@
 RAND_RAN_NUM = 0
 
-READ_PAR = True
-FILE_PAR = '68'
+READ_PAR = False
+FILE_PAR = '73'
 
 TICK_SUM = 0
 TICK_MAX = 1000
-AI_INPUT_SHAPE = 13
+AI_INPUT_SHAPE = 10
 AI_MIDDLE_SHAPE = 8
 AI_OUTPUT_SHAPE = 7
 
@@ -15,7 +15,7 @@ UP = 1.0
 ETA = 1.0
 
 # константы генетического алгоритма
-POPULATION_SIZE = 16   # количество индивидуумов в популяции
+POPULATION_SIZE = 26   # количество индивидуумов в популяции
 P_CROSSOVER = 0.9       # вероятность скрещивания
 P_MUTATION = 0.2        # вероятность мутации индивидуума
 MAX_GENERATIONS = 50000    # максимальное количество поколений

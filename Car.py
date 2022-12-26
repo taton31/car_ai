@@ -66,8 +66,8 @@ class Car (arcade.Sprite):
         self.start_angle = self.angle
         self.start_direct = self.direct
 
-        self.vision_vec =  [self.direct, rotate_Vec(self.direct, 30), rotate_Vec(self.direct, 90), rotate_Vec(self.direct, 150), rotate_Vec(self.direct, 180), rotate_Vec(self.direct, -30), rotate_Vec(self.direct, -90), rotate_Vec(self.direct, -150)]
-        self.vision_vec_correct =  [self.width / 2, 0.5 * (self.height ** 2 + self.width ** 2) ** 0.5 , self.height / 2, 0.5 * (self.height ** 2 + self.width ** 2) ** 0.5, self.width / 2, 0.5 * (self.height ** 2 + self.width ** 2) ** 0.5, self.height / 2, 0.5 * (self.height ** 2 + self.width ** 2) ** 0.5]
+        self.vision_vec =  [self.direct, rotate_Vec(self.direct, 30), rotate_Vec(self.direct, 90), rotate_Vec(self.direct, -30), rotate_Vec(self.direct, -90)]
+        self.vision_vec_correct =  [self.width / 2, 0.5 * (self.height ** 2 + self.width ** 2) ** 0.5 , self.height / 2, 0.5 * (self.height ** 2 + self.width ** 2) ** 0.5, self.height / 2]
         # self.vision_vec =  [rotate_Vec(self.direct, 90), rotate_Vec(self.direct, 45), self.direct, rotate_Vec(self.direct, 315), rotate_Vec(self.direct, 270)]
         # self.vision_vec =  [self.direct, rotate_Vec(self.direct, 45), rotate_Vec(self.direct, 315)]
         
@@ -257,7 +257,9 @@ class Car (arcade.Sprite):
         self.acc = np.array([0., 0.]) 
         self.vel = np.array([0., 0.])
         self.pos = np.array([self.center_x, self.center_y]) 
-        self.vision_vec =  [self.direct, rotate_Vec(self.direct, 30), rotate_Vec(self.direct, 90), rotate_Vec(self.direct, 150), rotate_Vec(self.direct, 180), rotate_Vec(self.direct, -30), rotate_Vec(self.direct, -90), rotate_Vec(self.direct, -150)]
+        self.vision_vec =  [self.direct, rotate_Vec(self.direct, 30), rotate_Vec(self.direct, 90), rotate_Vec(self.direct, -30), rotate_Vec(self.direct, -90)]
+
+        # self.vision_vec =  [self.direct, rotate_Vec(self.direct, 30), rotate_Vec(self.direct, 90), rotate_Vec(self.direct, 150), rotate_Vec(self.direct, 180), rotate_Vec(self.direct, -30), rotate_Vec(self.direct, -90), rotate_Vec(self.direct, -150)]
 
 
 

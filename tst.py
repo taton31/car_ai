@@ -1,17 +1,37 @@
-import numpy as np
-import re
-from constans import LENGTH_CHROM
-def read_par(str):
+from multiprocessing import Pool
+import time
+from threading import Thread
 
 
-    with open (f'par/{str}.txt', 'r') as f:
-        a = f.read().strip().split('\n\n')[-1]
-        a = a[a.find('[')+1:a.find(']')].replace('\n', ' ')
-        a = re.sub(" +", " ", a)
-        a=np.fromstring(a, count = LENGTH_CHROM, sep=' ')
-        return a
+def f(x):
+    for i in x:
+        i=i*i
 
-if __name__ == "__main__":
-    a = list(read_par('44'))
+if __name__ == '__main__':
+    
+    tst = [x for x in range(100000000)]
+    start_time = time.time()
+    # p.map(f, tst)
+    # import threading
 
-    print(a)
+    # threads = []
+
+    # # Create threads and pass the parameters to each thread
+    # t1 = threading.Thread(target=f, args=[tst[0::3]])
+    # t2 = threading.Thread(target=f, args=[tst[1::3]])
+    # t3 = threading.Thread(target=f, args=[tst[2::3]])
+
+    # # Start the threads
+    # threads.append(t1)
+    # threads.append(t2)
+    # threads.append(t3)
+    # t1.start()
+    # t2.start()
+    # t3.start()
+    f(tst)
+    # for i in tst:
+    #     f(i)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f'Function execution time: {round(elapsed_time,2)} seconds')
+    
