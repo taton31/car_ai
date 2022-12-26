@@ -1,7 +1,6 @@
 from deap import tools
 from deap.algorithms import varAnd
 
-
 def eaSimpleElitism(population, toolbox, cxpb, mutpb, ngen, stats=None,
              halloffame=None, verbose=__debug__, callback=None):
     """Перелеланный алгоритм eaSimple с элементом элитизма

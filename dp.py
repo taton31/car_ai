@@ -24,6 +24,11 @@ class car_ind(list):
 
 class DP():
     def __init__(self):
+        global POPULATION_SIZE, READ_PAR, TICK_MAX, SHOW_BEST
+        if SHOW_BEST:
+            READ_PAR = True
+            TICK_MAX = 10000
+            POPULATION_SIZE = 1
         self.hof = tools.HallOfFame(HALL_OF_FAME_SIZE)
 
         creator.create("FitnessMax", base.Fitness, weights=(1.0,))

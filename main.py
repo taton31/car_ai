@@ -38,10 +38,13 @@ class Welcome(arcade.Window):
         # self.car_refresh()
         # self.scan_par(READ_PAR)
         self.x = arcade.Sprite("images/car.png", 0.08, hit_box_algorithm='None')
-
+        global POPULATION_SIZE, READ_PAR, TICK_MAX, SHOW_BEST
+        if SHOW_BEST:
+            READ_PAR = True
+            TICK_MAX = 10000
+            POPULATION_SIZE = 1
+          
         self.dp = DP()
-        
-        self.p=Pool(POPULATION_SIZE)
         
         self.Track = Track()
         self.draw_cars=[]
@@ -134,28 +137,28 @@ class Welcome(arcade.Window):
                 self.dp.change_indpb(sigma * 1)
                 self.elitism(0.1)
             elif self.dp.logbook[-1]['max'] <= 22:
-                self.dp.change_indpb(sigma * 8)
-                self.elitism(0.8)
+                self.dp.change_indpb(sigma * 5)
+                self.elitism(0.5)
                 
             elif 22 < self.dp.logbook[-1]['max'] <= 30:
-                self.dp.change_indpb(sigma * 6)
-                self.elitism(0.6)
+                self.dp.change_indpb(sigma * 4)
+                self.elitism(0.5)
 
             elif 30 < self.dp.logbook[-1]['max'] <= 55:
-                self.dp.change_indpb(sigma * 4)
-                self.elitism(0.4)
+                self.dp.change_indpb(sigma * 2)
+                self.elitism(0.3)
 
             elif 55 < self.dp.logbook[-1]['max'] <= 70:
-                self.dp.change_indpb(sigma * 3)
+                self.dp.change_indpb(sigma * 2)
                 self.elitism(0.2)
 
             elif 70 < self.dp.logbook[-1]['max']:
                 self.dp.change_indpb(sigma * 1)
-                self.elitism(0.3)
+                self.elitism(0.2)
 
             else:
                 self.dp.change_indpb(sigma * 1)
-                self.elitism(0.3)
+                self.elitism(0.2)
             
 
             for i in self.dp.population:

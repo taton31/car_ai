@@ -215,23 +215,22 @@ class Car (arcade.Sprite):
         self.vision_points_distance_standart = [(min(300, line) / 300) for line in self.vision_points_distance]
 
         normalizedForwardVelocity = len_vec(self.vel) / MAX_SPEED
-        normalizedReverseVelocity = 0
         
         if self.vel.dot(rotate_Vec(self.direct, 90)) > 0:
             normalizedPosDrift = min(self.vel.dot(rotate_Vec(self.direct, 90)), 300) / 300
             normalizedNegDrift = 0
         else:
             normalizedPosDrift = 0
-            normalizedNegDrift = min(self.vel.dot(rotate_Vec(self.direct, 90)), 300) / 300
+            normalizedNegDrift = -min(self.vel.dot(rotate_Vec(self.direct, 90)), 300) / 300
 
         next_candy_center = np.array([self.Candy.Candy[0][0][0] + (self.Candy.Candy[0][1][0] - self.Candy.Candy[0][0][0]) / 2 , self.Candy.Candy[0][0][1] + (self.Candy.Candy[0][1][1] - self.Candy.Candy[0][0][1]) / 2] )
         next_candy_center[0] -= self.center_x
         next_candy_center[1] -= self.center_y
-        normalizedAngleOfNextGate = (Vec_to_ang(self.direct) - Vec_to_ang(next_candy_center)) % 360
+        normalizedAngleOfNextGate = math.fabs(Vec_to_ang(self.direct) - Vec_to_ang(next_candy_center)) % 180
 
-        normalizedAngleOfNextGate /= 360
-
-        normalizedState = [*self.vision_points_distance_standart, normalizedForwardVelocity, normalizedReverseVelocity,
+        normalizedAngleOfNextGate /= 180
+        # print(self.vision_points_distance_standart[4])
+        normalizedState = [*self.vision_points_distance_standart, normalizedForwardVelocity,
                            normalizedPosDrift, normalizedNegDrift, normalizedAngleOfNextGate]
         return np.reshape(np.array(normalizedState), (1, AI_INPUT_SHAPE))
 
