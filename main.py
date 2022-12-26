@@ -129,7 +129,7 @@ class Welcome(arcade.Window):
                     file.write(f"MAX SCORE: {self.dp.logbook[-1]['max']}\n")
                     file.write(np.array2string(self.dp.get_best().car.model.get_weights()) + '\n\n')
             
-            sigma = 2.0
+            sigma = 1.0
             if GEN == 1 and READ_PAR: 
                 self.dp.change_indpb(sigma * 1)
                 self.elitism(0.1)
@@ -151,11 +151,11 @@ class Welcome(arcade.Window):
 
             elif 70 < self.dp.logbook[-1]['max']:
                 self.dp.change_indpb(sigma * 1)
-                self.elitism(0.7)
+                self.elitism(0.2)
 
             else:
                 self.dp.change_indpb(sigma * 1)
-                self.elitism(0.7)
+                self.elitism(0.2)
             
 
             for i in self.dp.population:

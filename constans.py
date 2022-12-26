@@ -12,7 +12,7 @@ AI_OUTPUT_SHAPE = 7
 LENGTH_CHROM = 217
 LOW = -1.0
 UP = 1.0
-ETA = 20
+ETA = 1.0
 
 # константы генетического алгоритма
 POPULATION_SIZE = 16   # количество индивидуумов в популяции

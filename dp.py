@@ -46,7 +46,7 @@ class DP():
         self.population = self.toolbox.populationCreator(n=POPULATION_SIZE)
         
         self.toolbox.register("evaluate", getScore)
-        self.toolbox.register("select", tools.selTournament, tournsize=2)
+        self.toolbox.register("select", tools.selTournament, tournsize=3)
         self.toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=LOW, up=UP, eta=ETA)
         self.toolbox.register("mutate", tools.mutPolynomialBounded, low=LOW, up=UP, eta=ETA, indpb= 1 * 1.0/LENGTH_CHROM)
 
