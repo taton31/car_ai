@@ -71,6 +71,8 @@ class Welcome(arcade.Window):
                 self.x.angle = i.car.angle
                 self.x.alpha = 100
                 self.x.draw()
+                arcade.draw_text(getScore(i)[0], self.x.center_x + 10, self.x.center_y + 10, arcade.color.BLACK, bold = True)
+
 
     def car_draw_best(self):
         
@@ -109,13 +111,14 @@ class Welcome(arcade.Window):
         # вызов поколения  
         global GEN, CUR_TICK, TICK_MAX 
 
+        self.check_tick()
         
-        
-        if CUR_TICK < TICK_MAX and self.is_ex_live_Car():
+        if self.is_ex_live_Car():
             CUR_TICK += 1
 
             for i in self.dp.population:
                 update_car(i)
+                # print(i.car.state)
 
             # for i in self.dp.population:
             #     set_car_w(i)
@@ -163,16 +166,16 @@ class Welcome(arcade.Window):
 
                 elif 70 < self.dp.logbook[-1]['max']:
                     self.dp.change_indpb(sigma * 1)
-                    self.elitism(0.3)
+                    self.elitism(0.4)
 
                 else:
                     self.dp.change_indpb(sigma * 1)
-                    self.elitism(0.3)
+                    self.elitism(0.4)
                 
 
                 for i in self.dp.population:
                     i.car.set_zero_point()
-                CUR_TICK = 0
+                CUR_TICK = 1
                 GEN += 1
 
             else:
@@ -211,7 +214,14 @@ class Welcome(arcade.Window):
     #     return self.Cars[iii].Candy_score
         
       
-    
+    def check_tick(self):
+        for i in self.dp.population:
+            if not i.car.remove_flag:
+                i.car.life_time = CUR_TICK
+                if CUR_TICK > TICK_MAX:
+                    i.car.remove_flag = True
+
+
 
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.O:

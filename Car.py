@@ -16,15 +16,18 @@ from neuralnetwork import NNetwork
 class Car (arcade.Sprite):
     def __init__(self, x, y, scale) -> None:
         super().__init__("images/car.png", scale, hit_box_algorithm='None', )
+        # self.model = NNetwork(AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE)
         self.model = NNetwork(AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE)
         global LENGTH_CHROM
         LENGTH_CHROM = NNetwork.getTotalWeights(AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE)
+        # LENGTH_CHROM = NNetwork.getTotalWeights(AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE)
         # print (LENGTH_CHROM)
         self.stop_time = 0
         self.left_time = 0
         self.right_time = 0
-        self.Candy_score = -1
+        self.Candy_score = 0
 
+        self.life_time = 1
         self.set_W = False
 
         self.alpha = 100
@@ -34,7 +37,7 @@ class Car (arcade.Sprite):
         
         self.center_y = y
         self.center_x = x
-        self.angle = 0
+        self.angle = START_ANGLE
         self.L = math.sqrt( self.width**2 + self.height**2)
         self.wheel_rot = 0
 
@@ -56,7 +59,7 @@ class Car (arcade.Sprite):
         self.F_rr = np.array([1, 0]) 
         self.F_long = np.array([1, 0]) 
         
-        self.direct = np.array([1, 0]) 
+        self.direct = np.array(START_DIRECT) 
         self.acc = np.array([0., 0.]) 
         self.vel = np.array([0., 0.]) 
         self.pos = np.array([x, y]) 
@@ -146,11 +149,12 @@ class Car (arcade.Sprite):
                 self.wheel_rot += math.copysign(WHEEL_ROT_PER_SEC, -self.wheel_rot)
 
         if self.wheel_rot != 0 and self.vel.dot(self.vel) != 0:
-            self.R = self.L / math.sin(self.wheel_rot) 
+            # self.R = self.L / math.sin(self.wheel_rot) 
             self.angle += self.wheel_rot
             self.direct = ang_to_Vec(self.angle)
         else: 
-            self.R = math.inf
+            pass
+            # self.R = math.inf
         self.direct = ang_to_Vec(self.angle)
         self.F_drag = - C_DRAG * len_vec(self.vel) * self.vel
         self.F_rr = - C_RR * self.vel
@@ -232,9 +236,13 @@ class Car (arcade.Sprite):
         if self.vel.dot(rotate_Vec(self.direct, 90)) > 0:
             normalizedPosDrift = min(self.vel.dot(rotate_Vec(self.direct, 90)), 300) / 300
             normalizedNegDrift = 0
-        else:
+        elif self.vel.dot(rotate_Vec(self.direct, 90)) < 0:
             normalizedPosDrift = 0
             normalizedNegDrift = -min(self.vel.dot(rotate_Vec(self.direct, 90)), 300) / 300
+        else:
+            normalizedPosDrift = 0
+            normalizedNegDrift = 0
+
 
         # next_candy_center = np.array([self.Candy.Candy[0][0][0] + (self.Candy.Candy[0][1][0] - self.Candy.Candy[0][0][0]) / 2 , self.Candy.Candy[0][0][1] + (self.Candy.Candy[0][1][1] - self.Candy.Candy[0][0][1]) / 2] )
         # next_candy_center[0] -= self.center_x
@@ -256,9 +264,10 @@ class Car (arcade.Sprite):
         self.center_y = self.start_y
         self.angle = self.start_angle
         self.direct = self.start_direct
-        self.Candy_score = -1
+        self.Candy_score = 0
         self.Candy = Candy()
         self.set_W = False
+        self.life_time = 1
         self.wheel_rot = 0
         self.state = []
         self.remove_flag = False
@@ -300,5 +309,4 @@ class Track ():
     def draw(self):
         arcade.draw_line_strip(track[0], arcade.color.BLACK)
         arcade.draw_line_strip(track[1], arcade.color.BLACK)
-
 

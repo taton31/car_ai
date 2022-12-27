@@ -1,10 +1,11 @@
 
+from constans import TRACK_NUM
 
 def read_candy():
     z_f=[]
     candy = []
 
-    with open ('res/candy3.txt', 'r') as f:
+    with open (f'res/candy{TRACK_NUM}.txt', 'r') as f:
         for line in f:
             if line.strip() == '':
                 candy.append(z_f.copy())

@@ -1,3 +1,4 @@
+from constans import TRACK_NUM
 track = []
 
 def read_track():
@@ -5,7 +6,7 @@ def read_track():
     z_s=[]
     flag_ = True
 
-    with open ('res/track2.txt', 'r') as f:
+    with open (f'res/track{TRACK_NUM}.txt', 'r') as f:
         for line in f:
             if line.strip() == '':
                 flag_ = False

@@ -39,8 +39,9 @@ class DP():
         creator.create("FitnessMax", base.Fitness, weights=(1.0,))
         creator.create("Individual", car_ind, fitness=creator.FitnessMax)
         global LENGTH_CHROM
+        # LENGTH_CHROM = NNetwork.getTotalWeights(AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE)
         LENGTH_CHROM = NNetwork.getTotalWeights(AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE)
-
+        # print((AI_INPUT_SHAPE, AI_MIDDLE_SHAPE, AI_OUTPUT_SHAPE))
         self.toolbox = base.Toolbox()
 
         self.toolbox.register("randomWeight", random.uniform, -1.0, 1.0)
@@ -56,7 +57,7 @@ class DP():
         self.population = self.toolbox.populationCreator(n=POPULATION_SIZE)
         
         self.toolbox.register("evaluate", getScore)
-        self.toolbox.register("select", tools.selTournament, tournsize=3)
+        self.toolbox.register("select", tools.selTournament, tournsize=2)
         self.toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=LOW, up=UP, eta=ETA)
         self.toolbox.register("mutate", tools.mutPolynomialBounded, low=LOW, up=UP, eta=ETA, indpb= 1 * 1.0/LENGTH_CHROM)
 
@@ -94,7 +95,7 @@ def create_ind(a):
     return creator.Individual(read_par(a))
 
 def getScore(individual):
-    return individual.car.Candy_score,
+    return round(individual.car.Candy_score + 200.0 * individual.car.Candy_score / individual.car.life_time),
 
     
 def update_car(individual):
