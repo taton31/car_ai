@@ -146,11 +146,11 @@ class Welcome(arcade.Window):
                     self.dp.change_indpb(sigma * 1)
                     self.elitism(0.8)
                 elif self.dp.logbook[-1]['max'] <= 22:
-                    self.dp.change_indpb(sigma * 5)
+                    self.dp.change_indpb(sigma * 4)
                     self.elitism(0.5)
                     
                 elif 22 < self.dp.logbook[-1]['max'] <= 30:
-                    self.dp.change_indpb(sigma * 4)
+                    self.dp.change_indpb(sigma * 3)
                     self.elitism(0.5)
 
                 elif 30 < self.dp.logbook[-1]['max'] <= 55:
@@ -220,6 +220,8 @@ class Welcome(arcade.Window):
         if symbol == arcade.key.P:
             pass
 
+        if not DEBAG_MODE: return
+
         if symbol == arcade.key.UP:
             for i in self.dp.population:
                 if not i.car.remove_flag:
@@ -242,6 +244,8 @@ class Welcome(arcade.Window):
             
 
     def on_key_release(self, symbol: int, modifiers: int):
+        if not DEBAG_MODE: return
+
         if symbol == arcade.key.UP:
             for i in self.dp.population:
                 if not i.car.remove_flag:

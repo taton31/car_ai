@@ -177,17 +177,15 @@ class Car (arcade.Sprite):
         elif actionNo == 2:
             self.up_pressed = True
         elif actionNo == 3:
-            self.down_pressed = True
-        elif actionNo == 4:
             self.up_pressed = True
             self.left_pressed = True
-        elif actionNo == 5:
+        elif actionNo == 4:
             self.up_pressed = True
             self.right_pressed = True
-        elif actionNo == 6:
+        elif actionNo == 5:
             pass
 
-        if actionNo == 2 or actionNo == 4 or actionNo == 5:
+        if actionNo == 2 or actionNo == 3 or actionNo == 4:
             self.stop_time = 0
         else:
             self.stop_time += 1
@@ -238,15 +236,15 @@ class Car (arcade.Sprite):
             normalizedPosDrift = 0
             normalizedNegDrift = -min(self.vel.dot(rotate_Vec(self.direct, 90)), 300) / 300
 
-        next_candy_center = np.array([self.Candy.Candy[0][0][0] + (self.Candy.Candy[0][1][0] - self.Candy.Candy[0][0][0]) / 2 , self.Candy.Candy[0][0][1] + (self.Candy.Candy[0][1][1] - self.Candy.Candy[0][0][1]) / 2] )
-        next_candy_center[0] -= self.center_x
-        next_candy_center[1] -= self.center_y
-        normalizedAngleOfNextGate = math.fabs(180 + Vec_to_ang(self.direct) - Vec_to_ang(next_candy_center)) % 360
+        # next_candy_center = np.array([self.Candy.Candy[0][0][0] + (self.Candy.Candy[0][1][0] - self.Candy.Candy[0][0][0]) / 2 , self.Candy.Candy[0][0][1] + (self.Candy.Candy[0][1][1] - self.Candy.Candy[0][0][1]) / 2] )
+        # next_candy_center[0] -= self.center_x
+        # next_candy_center[1] -= self.center_y
+        # normalizedAngleOfNextGate = math.fabs(180 + Vec_to_ang(self.direct) - Vec_to_ang(next_candy_center)) % 360
 
-        normalizedAngleOfNextGate /= 360
+        # normalizedAngleOfNextGate /= 360
         # print(self.vision_points_distance_standart[4])
         normalizedState = [*self.vision_points_distance_standart, normalizedForwardVelocity,
-                           normalizedPosDrift, normalizedNegDrift, normalizedAngleOfNextGate]
+                           normalizedPosDrift, normalizedNegDrift]#, normalizedAngleOfNextGate]
         return np.reshape(np.array(normalizedState), (1, AI_INPUT_SHAPE))
 
     def correct_vision_distance(self):
