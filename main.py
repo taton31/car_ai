@@ -43,6 +43,10 @@ class Welcome(arcade.Window):
             READ_PAR = True
             TICK_MAX = 10000
             POPULATION_SIZE = 1
+        
+        if DEBAG_MODE:
+            TICK_MAX = 1000000
+
           
         self.dp = DP()
         
@@ -78,7 +82,11 @@ class Welcome(arcade.Window):
 
     def on_draw(self):
         self.clear()
-        self.cars_to_draw(self.dp.population)
+        if DEBAG_MODE:
+            car = self.dp.population[0]
+            car.car.draw()
+        else:
+            self.cars_to_draw(self.dp.population)
         # self.car_draw_best()
 
         # car = self.dp.population[0]
@@ -123,48 +131,53 @@ class Welcome(arcade.Window):
 
 
         else:        
+            if not DEBAG_MODE:
             # print (f"Прожило тиков: {CUR_TICK}")
-            if GEN % 15 == 0:
-                # TICK_MAX += 100
-                # print (f"Количество тиков: {TICK_MAX}")
-                with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
-                    file.write(f"GEN: {GEN}\n")
-                    file.write(f"MAX SCORE: {self.dp.logbook[-1]['max']}\n")
-                    file.write(np.array2string(self.dp.get_best().car.model.get_weights()) + '\n\n')
-            
-            sigma = 2.0
-            if GEN == 1 and READ_PAR: 
-                self.dp.change_indpb(sigma * 1)
-                self.elitism(0.1)
-            elif self.dp.logbook[-1]['max'] <= 22:
-                self.dp.change_indpb(sigma * 5)
-                self.elitism(0.5)
+                if GEN % 15 == 0:
+                    # TICK_MAX += 100
+                    # print (f"Количество тиков: {TICK_MAX}")
+                    with open(f"par/{RAND_RAN_NUM}.txt", "a") as file:
+                        file.write(f"GEN: {GEN}\n")
+                        file.write(f"MAX SCORE: {self.dp.logbook[-1]['max']}\n")
+                        file.write(np.array2string(self.dp.get_best().car.model.get_weights()) + '\n\n')
                 
-            elif 22 < self.dp.logbook[-1]['max'] <= 30:
-                self.dp.change_indpb(sigma * 4)
-                self.elitism(0.5)
+                sigma = 2.0
+                if GEN == 1 and READ_PAR: 
+                    self.dp.change_indpb(sigma * 1)
+                    self.elitism(0.8)
+                elif self.dp.logbook[-1]['max'] <= 22:
+                    self.dp.change_indpb(sigma * 5)
+                    self.elitism(0.5)
+                    
+                elif 22 < self.dp.logbook[-1]['max'] <= 30:
+                    self.dp.change_indpb(sigma * 4)
+                    self.elitism(0.5)
 
-            elif 30 < self.dp.logbook[-1]['max'] <= 55:
-                self.dp.change_indpb(sigma * 2)
-                self.elitism(0.3)
+                elif 30 < self.dp.logbook[-1]['max'] <= 55:
+                    self.dp.change_indpb(sigma * 2)
+                    self.elitism(0.3)
 
-            elif 55 < self.dp.logbook[-1]['max'] <= 70:
-                self.dp.change_indpb(sigma * 2)
-                self.elitism(0.2)
+                elif 55 < self.dp.logbook[-1]['max'] <= 70:
+                    self.dp.change_indpb(sigma * 2)
+                    self.elitism(0.3)
 
-            elif 70 < self.dp.logbook[-1]['max']:
-                self.dp.change_indpb(sigma * 1)
-                self.elitism(0.2)
+                elif 70 < self.dp.logbook[-1]['max']:
+                    self.dp.change_indpb(sigma * 1)
+                    self.elitism(0.3)
+
+                else:
+                    self.dp.change_indpb(sigma * 1)
+                    self.elitism(0.3)
+                
+
+                for i in self.dp.population:
+                    i.car.set_zero_point()
+                CUR_TICK = 0
+                GEN += 1
 
             else:
-                self.dp.change_indpb(sigma * 1)
-                self.elitism(0.2)
-            
-
-            for i in self.dp.population:
-                i.car.set_zero_point()
-            CUR_TICK = 0
-            GEN += 1
+                for i in self.dp.population:
+                    i.car.set_zero_point()
             
     def elitism(self, mutpb):
         self.dp.population, self.dp.logbook = eaSimpleElitism_CONTINUE(self.dp.population, self.dp.toolbox,

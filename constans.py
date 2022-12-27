@@ -4,6 +4,8 @@ SHOW_BEST = False
 READ_PAR = False
 FILE_PAR = '88'
 
+DEBAG_MODE = False
+
 TICK_SUM = 0
 TICK_MAX = 1000
 AI_INPUT_SHAPE = 9
@@ -13,10 +15,10 @@ AI_OUTPUT_SHAPE = 7
 LENGTH_CHROM = 217
 LOW = -1.0
 UP = 1.0
-ETA = 1.0
+ETA = 1.5
 
 # константы генетического алгоритма
-POPULATION_SIZE = 26   # количество индивидуумов в популяции
+POPULATION_SIZE = 20   # количество индивидуумов в популяции
 P_CROSSOVER = 0.9       # вероятность скрещивания
 P_MUTATION = 0.2        # вероятность мутации индивидуума
 MAX_GENERATIONS = 50000    # максимальное количество поколений

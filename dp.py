@@ -6,7 +6,7 @@ from deap import tools
 from constans import *
 import algelitism
 from linalg import *
-from intersection import line_intersection, line_intersection_car
+from intersection import line_intersection, line_intersection_car, GPT_line_intersection_car
 from neuralnetwork import NNetwork
 from read_par import read_par
 
@@ -27,8 +27,13 @@ class DP():
         global POPULATION_SIZE, READ_PAR, TICK_MAX, SHOW_BEST
         if SHOW_BEST:
             READ_PAR = True
-            TICK_MAX = 10000
+            TICK_MAX = 100000
             POPULATION_SIZE = 1
+        
+        if DEBAG_MODE:
+            TICK_MAX = 100000
+            POPULATION_SIZE = 1
+
         self.hof = tools.HallOfFame(HALL_OF_FAME_SIZE)
 
         creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -100,7 +105,8 @@ def update_car(individual):
         individual.car.set_W = True
         individual.car.model.set_weights(individual)
     # print(len_vec(individual.car.vel))
-    individual.car.AI_update(np.argmax(individual.car.model.predict(individual.car.state)))
+    if not DEBAG_MODE:
+        individual.car.AI_update(np.argmax(individual.car.model.predict(individual.car.state)))
     individual.car.car_phys(1/60)
 
     individual.car.check_crush()
@@ -108,6 +114,7 @@ def update_car(individual):
     # individual.car.vision_vec =  [individual.car.direct, rotate_Vec(individual.car.direct, 30), rotate_Vec(individual.car.direct, 90), rotate_Vec(individual.car.direct, 150), rotate_Vec(individual.car.direct, 180), rotate_Vec(individual.car.direct, -30), rotate_Vec(individual.car.direct, -90), rotate_Vec(individual.car.direct, -150)]
     individual.car.vision_vec =  [individual.car.direct, rotate_Vec(individual.car.direct, 30), rotate_Vec(individual.car.direct, 90), rotate_Vec(individual.car.direct, -30), rotate_Vec(individual.car.direct, -90)]
 
+    # if GPT_line_intersection_car(individual.car.get_adjusted_hit_box(), individual.car.Candy.Candy[0]):
     if line_intersection_car(individual.car.get_adjusted_hit_box(), individual.car.Candy.Candy[0]):
         
         individual.car.Candy_score += 1######################################################################################################

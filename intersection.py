@@ -189,3 +189,62 @@ def find_closest_point_AI(A, points):
             closest_point = p
     # Return the closest point
     return closest_point
+
+
+def GTP_intersect(x1, y1, x2, y2, x3, y3, x4, y4):
+
+    # Calculate the coefficients of the lines passing through each segment
+    k1 = (y2 - y1) / (x2 - x1) if x1 != x2 else float('inf')
+    k2 = (y4 - y3) / (x4 - x3) if x3 != x4 else float('inf')
+
+    # Calculate the free terms of the equations
+    b1 = y1 - k1 * x1
+    b2 = y3 - k2 * x3
+
+    # If the equations of the lines passing through the segments are the same, the segments coincide
+    if k1 == k2 and b1 == b2:
+        return (x1, y1)
+
+    # If the equations of the lines are parallel, the segments do not intersect
+    if k1 == k2:
+        return False
+
+    # Calculate the point of intersection
+    x = (b2 - b1) / (k1 - k2)
+    y = k1 * x + b1
+
+    # Check if the intersection point is on the segments
+    if (x1 <= x <= x2 or x2 <= x <= x1) and (x3 <= x <= x4 or x4 <= x <= x3):
+        return (x, y)
+    else:
+        return False
+
+
+def GPT_nearest_point(A, ls):
+    # Set the initial minimum distance to a large value
+    min_distance = float('inf')
+    # Set the initial nearest point to None
+    nearest_point = None
+    
+    # Iterate through the list of points
+    for point in ls:
+        # Calculate the distance between A and the current point
+        distance = math.sqrt((point[0] - A[0])**2 + (point[1] - A[1])**2)
+        # If the distance is smaller than the current minimum distance,
+        # update the minimum distance and set the current point as the nearest point
+        if distance < min_distance:
+            min_distance = distance
+            nearest_point = point
+    
+    # Return the nearest point
+    return nearest_point
+
+
+def GPT_line_intersection_car(a, b):
+    points = []
+    for i in range(0,len(a)-1): 
+        for j in range(0,len(b)-1):
+            point = GTP_intersect (a[i][0], a[i][1], a[i+1][0], a[i+1][1], b[j][0], b[j][1], b[j+1][0], b[j+1][1])
+            if point:
+                points.append(point)
+    return GPT_nearest_point([a[0][0], a[0][1]], points)

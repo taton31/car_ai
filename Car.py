@@ -5,7 +5,7 @@ import arcade
 import numpy as np 
 from read_map import track, read_track
 from read_candy import read_candy
-from intersection import line_intersection, line_intersection_car, shape_intersection_car_AI
+from intersection import line_intersection, line_intersection_car, shape_intersection_car_AI, GPT_line_intersection_car
 import os
 from read_par import read_par
 from constans import *
@@ -79,8 +79,21 @@ class Car (arcade.Sprite):
         for j in self.vision_points:
             if j:
                 arcade.draw_circle_filled(j[0], j[1], 10, arcade.color.WHITE)
+
+        arcade.draw_line(self.center_x, self.center_y, self.center_x + self.vel[0], self.center_y + self.vel[1], arcade.color.BLACK, 2)
+        vec_right_drift = self.vel.dot(rotate_Vec(self.direct, 90)) * rotate_Vec(self.direct, 90) / len_vec (self.direct)
+        arcade.draw_line(self.center_x, self.center_y, self.center_x + vec_right_drift[0], self.center_y + vec_right_drift[1], arcade.color.BLACK, 2)
+        vec_left_drift = self.vel.dot(rotate_Vec(self.direct, -90)) * rotate_Vec(self.direct, -90) / len_vec (self.direct)
+        arcade.draw_line(self.center_x, self.center_y, self.center_x + vec_left_drift[0], self.center_y + vec_left_drift[1], arcade.color.BLACK, 2)
+
+        next_candy_center = np.array([self.Candy.Candy[0][0][0] + (self.Candy.Candy[0][1][0] - self.Candy.Candy[0][0][0]) / 2 , self.Candy.Candy[0][0][1] + (self.Candy.Candy[0][1][1] - self.Candy.Candy[0][0][1]) / 2] )
+        next_candy_center[0] -= self.center_x
+        next_candy_center[1] -= self.center_y
+        vec_NextGate = - self.direct + next_candy_center
+
+        arcade.draw_line(self.center_x, self.center_y, self.center_x + vec_NextGate[0], self.center_y + vec_NextGate[1], arcade.color.BLACK, 2)
         
-        # self.Candy.draw()
+        self.Candy.draw()
 
 
     # def update(self, delta_time):     
@@ -105,7 +118,7 @@ class Car (arcade.Sprite):
         
     def check_crush(self):
         if not self.remove_flag:
-            # if shape_intersection_car_AI(self.get_adjusted_hit_box(), self.Track.track[0]) or shape_intersection_car_AI(self.get_adjusted_hit_box(), self.Track.track[1]):
+            # if GPT_line_intersection_car(self.get_adjusted_hit_box(), self.Track.track[0]) or GPT_line_intersection_car(self.get_adjusted_hit_box(), self.Track.track[1]):
             if line_intersection_car(self.get_adjusted_hit_box(), self.Track.track[0]) or line_intersection_car(self.get_adjusted_hit_box(), self.Track.track[1]):
                 self.remove_flag = True
                 # self.Candy_score -= 100
@@ -200,10 +213,12 @@ class Car (arcade.Sprite):
         for i in self.vision_vec:
             segment = [[self.center_x, self.center_y], [self.center_x + 3000 * i[0], self.center_y + 3000 * i[1]]]
             point_1 = line_intersection(segment, self.Track.track[0])
+            # point_1 = GPT_line_intersection_car(segment, self.Track.track[0])
             point_2 = line_intersection(segment, self.Track.track[1])
+            # point_2 = GPT_line_intersection_car(segment, self.Track.track[1])
             if not point_1 or not point_2:
                 self.vision_points.append(point_1 or point_2) 
-            elif (self.center_x - point_1[0])**2 + (self.center_y - point_1[1])**2 < (self.center_x - point_2[0])**2 + (self.center_y - point_2[1])**2: self.vision_points.append(point_1)
+            elif (self.center_x - point_1[0])**2 + (self.center_y - point_1[1])**2 <= (self.center_x - point_2[0])**2 + (self.center_y - point_2[1])**2: self.vision_points.append(point_1)
             elif (self.center_x - point_1[0])**2 + (self.center_y - point_1[1])**2 > (self.center_x - point_2[0])**2 + (self.center_y - point_2[1])**2: self.vision_points.append(point_2)
             
         if not self.vision_points_OLD : self.vision_points_OLD = self.vision_points
@@ -226,9 +241,9 @@ class Car (arcade.Sprite):
         next_candy_center = np.array([self.Candy.Candy[0][0][0] + (self.Candy.Candy[0][1][0] - self.Candy.Candy[0][0][0]) / 2 , self.Candy.Candy[0][0][1] + (self.Candy.Candy[0][1][1] - self.Candy.Candy[0][0][1]) / 2] )
         next_candy_center[0] -= self.center_x
         next_candy_center[1] -= self.center_y
-        normalizedAngleOfNextGate = math.fabs(Vec_to_ang(self.direct) - Vec_to_ang(next_candy_center)) % 180
+        normalizedAngleOfNextGate = math.fabs(180 + Vec_to_ang(self.direct) - Vec_to_ang(next_candy_center)) % 360
 
-        normalizedAngleOfNextGate /= 180
+        normalizedAngleOfNextGate /= 360
         # print(self.vision_points_distance_standart[4])
         normalizedState = [*self.vision_points_distance_standart, normalizedForwardVelocity,
                            normalizedPosDrift, normalizedNegDrift, normalizedAngleOfNextGate]
