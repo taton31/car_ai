@@ -5,7 +5,7 @@ READ_PAR = True
 FILE_PAR = '106'
 DEBAG_MODE = False
 
-TRACK_NUM = '1'
+TRACK_NUM = '3'
 if TRACK_NUM == '3':
     CAR_START_X = 250
     CAR_START_Y = 830.

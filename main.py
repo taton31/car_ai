@@ -148,26 +148,6 @@ class Welcome(arcade.Window):
                 if GEN == 1 and READ_PAR: 
                     self.dp.change_indpb(sigma * 1)
                     self.elitism(0.8)
-                elif self.dp.logbook[-1]['max'] <= 22:
-                    self.dp.change_indpb(sigma * 4)
-                    self.elitism(0.5)
-                    
-                elif 22 < self.dp.logbook[-1]['max'] <= 30:
-                    self.dp.change_indpb(sigma * 3)
-                    self.elitism(0.5)
-
-                elif 30 < self.dp.logbook[-1]['max'] <= 55:
-                    self.dp.change_indpb(sigma * 2)
-                    self.elitism(0.3)
-
-                elif 55 < self.dp.logbook[-1]['max'] <= 70:
-                    self.dp.change_indpb(sigma * 2)
-                    self.elitism(0.3)
-
-                elif 70 < self.dp.logbook[-1]['max']:
-                    self.dp.change_indpb(sigma * 1)
-                    self.elitism(0.4)
-
                 else:
                     self.dp.change_indpb(sigma * 1)
                     self.elitism(0.4)
